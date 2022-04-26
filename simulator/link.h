@@ -4,6 +4,8 @@
 #include <utility>
 //#include "host.h"
 #include <QGraphicsScene>
+#include "packet.h"
+#include <vector>
 
 using namespace std;
 
@@ -17,10 +19,20 @@ class Link {
          */
         void draw(QGraphicsScene *scene);
 
+        Host* getOtherHost(Host *currentHost);
+
+        /**
+        * Puts given packet into the link's buffer while in transit
+        */
+        void forwardPacket(Packet *packet);
+
+        void tick(int timeDelta);
+
     private:
-        bool isDrawn = false;
         pair<Host*, Host*> hosts;
         int length; // To calculate a time delay over the link
+
+        vector<pair<Packet*, int>> linkBuffer;
 };
 
 #endif

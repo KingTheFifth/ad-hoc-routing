@@ -4,13 +4,13 @@
 #include <vector>
 #include <queue>
 #include <QGraphicsScene>
-#include "link.h"
+//#include "link.h"
 #include "packet.h"
 #include "point.h"
 
 using namespace std;
 
-//class Link;
+class Link;
 
 class Host {
     public:
@@ -32,6 +32,10 @@ class Host {
         void draw(QGraphicsScene *scene) const;
 
         void tick();
+
+        void forwardPacket(Packet* packet, Link* link);
+
+        void receivePacket(Packet* packet);
 
     private:
         Point point;

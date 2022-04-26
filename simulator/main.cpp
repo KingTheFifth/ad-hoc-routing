@@ -15,28 +15,27 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    // Set up graphics
-    int width = 500;
-    int height = 500;
-    view->setScene(scene);
-    view->scale(1, -1); //screen y-axis is inverted
-    view->setSceneRect(0, 0, width, height);
-    view->show();
-
     string topologyFileName = "top.txt";
     ifstream input;
     input.open(topologyFileName);
 
     vector<Host*> hosts;
 
-    // get dimensions
-    // int width;
-    // int height;
+    // Set up graphics
+    int width;
+    int height;
+    int radius;
+
     input >> width;
     input >> height;
+    input >> radius;
 
-    int radius = 50; // TODO: Do something about the radius
+    view->setScene(scene);
+    view->scale(1, -1); //screen y-axis is inverted
+    view->setSceneRect(0, 0, width, height);
+    view->show();
 
+    // Set up initial topology
     int x;
     int y;
     while(input >> x >> y) {
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
         host->discoverNeighbours(&hosts);
     }
 
-    // draw the thing!
+    // draw the network
     for (auto& host : hosts) {
         host->draw(scene);
     }

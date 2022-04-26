@@ -10,3 +10,22 @@ Simulator Code:
 - Visual representation of the topology (maybe with animations?)
 - Links as objects probably => greater control over jitter and links breaking
 - Packets as objects, contains (size of) data, type (routing or data transfer), source and destination node
+
+Topologies:
+- Homogeneous (for now)
+- Sparse
+- Crowded
+
+Metrics:
+- Throughput
+- Routing overhead
+- Average packet delay
+- Packet Delivery Ratio
+
+Feature Backlog:
+- Drawing packets (time left on packet relative to length of link)
+- Destructors
+- Deallocate allocated memory where needed (link gets broken, end of simulation) => NO MEMORY LEAKS >:(
+- Links (and hosts?) keep track of the time stamp they were last ticked (global clock). When a link is ticked, it is given the
+  current time stamp and calculates a time delta compared to its own time stamp. If the delta is greater than 0
+  then the link updates its time stamp and does the ticky tick thingy ٩(◕‿◕)۶  (๑˃ᴗ˂)ﻭ (o˘◡˘o) ヽ(°〇°)ﾉ
