@@ -2,7 +2,6 @@
 #include "link.h"
 #include "host.h"
 #include "packet.h"
-#include <iostream>
 
 void Host::discoverNeighbours(vector<Host*>* hosts) {
     for (auto& host : *hosts) {
@@ -18,7 +17,7 @@ void Host::addNeighbour(Host* host) {
         if (link->getOtherHost(this) == host) return;
     }
     
-    Link* newLink = new Link(this, host);
+    Link* newLink = new Link(this, host, time);
     neighbours.push_back(newLink);
     host->neighbours.push_back(newLink);
 }
@@ -34,12 +33,28 @@ void Host::draw(QGraphicsScene *scene) const {
     }
 }
 
-void Host::tick() {
+void Host::tick(int currTime) {
+    time = currTime;
+
+    for (auto& link : neighbours) {
+        link->tick(currTime);
+    }
+
+    if (currTime % 5 == 0 && !buffer.empty()) { // temporary while routing is not implemented
+        Packet* packet = buffer.front();
+        buffer.pop();
+        int rndindex = rand() % neighbours.size();
+        Link* l = neighbours[rndindex];
+
+        forwardPacket(packet, l);
+        
+    }
     // :)
     // if something, pop from receive-queue
 }
 
 void Host::forwardPacket(Packet *packet, Link *link) {
+    packet->nextHop = link->getOtherHost(this);
     link->forwardPacket(packet);
 }
 

@@ -26,3 +26,15 @@ void Point::drawTo(Point that, QGraphicsScene *scene) const
     QGraphicsLineItem *item = new QGraphicsLineItem(x, y, that.x, that.y);
     scene->addItem(item);
 }
+
+double Point::slopeTo(const Point& p) const {
+    if (x == p.x && y == p.y)
+        return  -std::numeric_limits<double>::infinity();
+    else if (y == p.y) // horizontal line segment
+        return 0.0;
+    else if (x == p.x) // vertical line segment
+        return  std::numeric_limits<double>::infinity();
+    else
+        return (static_cast<double>(p.y) - static_cast<double>(y)) /
+                (static_cast<double>(p.x) - static_cast<double>(x));
+}

@@ -14,8 +14,8 @@ class Link;
 
 class Host {
     public:
-        Host(int _x, int _y, int _radius)
-        : point(_x, _y), radius(_radius) {}
+        Host(int _x, int _y, int _radius, int _time)
+        : point(_x, _y), radius(_radius), time(_time) {}
 
         vector<Link*> neighbours;
         queue<Packet*> buffer;
@@ -31,7 +31,7 @@ class Host {
 
         void draw(QGraphicsScene *scene) const;
 
-        void tick();
+        void tick(int currTime);
 
         void forwardPacket(Packet* packet, Link* link);
 
@@ -40,6 +40,7 @@ class Host {
     private:
         Point point;
         int radius;
+        int time;
 };
 
 #endif

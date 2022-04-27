@@ -29,3 +29,4 @@ Feature Backlog:
 - Links (and hosts?) keep track of the time stamp they were last ticked (global clock). When a link is ticked, it is given the
   current time stamp and calculates a time delta compared to its own time stamp. If the delta is greater than 0
   then the link updates its time stamp and does the ticky tick thingy ٩(◕‿◕)۶  (๑˃ᴗ˂)ﻭ (o˘◡˘o) ヽ(°〇°)ﾉ
+- Packet retransmission at loss event?

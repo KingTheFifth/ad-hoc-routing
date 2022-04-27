@@ -15,6 +15,7 @@ struct Point {
 
     double distanceTo(Point that) const;
 
+    double slopeTo(const Point& p) const;
 };
 
 #endif
