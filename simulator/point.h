@@ -11,11 +11,13 @@ struct Point {
 
     void draw(QGraphicsScene *scene) const;
 
-    void drawTo(Point that, QGraphicsScene *scene) const;
+    void drawTo(Point* that, QGraphicsScene *scene) const;
 
-    double distanceTo(Point that) const;
+    double distanceTo(Point* that) const;
 
-    double slopeTo(const Point& p) const;
+    double slopeTo(const Point* p) const;
+
+    double angleTo(const Point* p) const;
 };
 
 #endif

@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFileName = "shrimp.txt";
+    string topologyFileName = "portal.txt";
     ifstream input;
     input.open(topologyFileName);
 
@@ -31,6 +31,9 @@ int main(int argc, char *argv[])
     input >> width;
     input >> height;
     input >> radius;
+    width *= WINDOW_SCALE;
+    height *= WINDOW_SCALE;
+    radius *= WINDOW_SCALE;
 
     view->setScene(scene);
     view->scale(1, -1); //screen y-axis is inverted
@@ -41,11 +44,13 @@ int main(int argc, char *argv[])
     int x;
     int y;
     int time = 0;
+    unsigned id = 0;
     while(input >> x >> y) {
-        hosts.push_back(new Host(x, y, radius, time));
+        hosts.push_back(new Host(x * WINDOW_SCALE, y * WINDOW_SCALE, radius, time, id));
+        id++;
     }
     input.close();
-
+    
     // let all hosts find their neighbours
     for (auto& host : hosts) {
         host->discoverNeighbours(&hosts);
@@ -56,16 +61,11 @@ int main(int argc, char *argv[])
         host->draw(scene);
     }
 
-
-    //unsigned five = 5;
-    //unsigned six = 6;
-    //cout << "Cool experiment: " << five - six << endl;
     int packets = 0;
+    int timeDelta;
     while (true) { // Simulation is running (TODO: Do something different here)
-        //chrono::milliseconds before(chrono::system_clock::now());
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
 
-        //chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         for (auto& host : hosts) {
             host->tick(time);
         }
@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
         }
         view->update();
         a.processEvents();
-        time++;
-        int timeDelta = 5 - (int) chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - before).count();
+        time += TICK_STEP;
+        timeDelta = TICK_SPEED - (int) chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - before).count();
         if (timeDelta < 0) timeDelta = 0;
 
         this_thread::sleep_for(chrono::milliseconds(timeDelta));

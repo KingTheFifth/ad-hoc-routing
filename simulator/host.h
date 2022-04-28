@@ -14,8 +14,10 @@ class Link;
 
 class Host {
     public:
-        Host(int _x, int _y, int _radius, int _time)
-        : point(_x, _y), radius(_radius), time(_time) {}
+        Host(int _x, int _y, int _radius, int _time, unsigned _id)
+        : radius(_radius), time(_time), id(_id), mobilityTarget(nullptr) {
+            location = new Point(_x, _y);
+        }
 
         vector<Link*> neighbours;
         queue<Packet*> buffer;
@@ -27,7 +29,7 @@ class Host {
 
         void addNeighbour(Host* host);
 
-        Point getPos();
+        Point* getPos();
 
         void draw(QGraphicsScene *scene) const;
 
@@ -37,10 +39,20 @@ class Host {
 
         void receivePacket(Packet* packet);
 
+        void moveTo(Point* target);
+
+        Link* DSR(Host* destination);
+
+        Link* DSDV(Host* destination);
+
+        Link* GPSR(Point* position);
+
     private:
-        Point point;
+        Point* location;
         int radius;
         int time;
+        unsigned id;
+        Point* mobilityTarget;
 };
 
 #endif

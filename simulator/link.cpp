@@ -5,22 +5,23 @@
 Link::Link(Host *hostA, Host *hostB, int currTime) {
     hosts.first = hostA;
     hosts.second = hostB;
-    length = hostA->getPos().distanceTo(hostB->getPos());
+    length = hostA->getPos()->distanceTo(hostB->getPos()) / WINDOW_SCALE;
     time = currTime;
 }
 
 void Link::draw(QGraphicsScene *scene) { 
-    hosts.first->getPos().drawTo(hosts.second->getPos(), scene);
+    hosts.first->getPos()->drawTo(hosts.second->getPos(), scene);
     for (vector<pair<Packet*, int>>::iterator it = linkBuffer.begin(); it != linkBuffer.end(); it++) {
+        // TODO: extract into method :)
         double progress = 1 - ((double) it->second / (double) length); // 0 - 1        
 
-        Point destination = it->first->nextHop->getPos();
-        Point source = getOtherHost(it->first->nextHop)->getPos();
-        int y = source.y;
-        int x = source.x;
-        int dx = destination.x - x;
-        int dy = destination.y - y;
-        double slope = source.slopeTo(destination);
+        Point* destination = it->first->nextHop->getPos();
+        Point* source = getOtherHost(it->first->nextHop)->getPos();
+        int y = source->y;
+        int x = source->x;
+        int dx = destination->x - x;
+        int dy = destination->y - y;
+        double slope = source->slopeTo(destination);
         if (slope == -std::numeric_limits<double>::infinity())
             continue; // Don't bother drawing if the two hosts are overlapping
         else if (slope == std::numeric_limits<double>::infinity()) // vertical line
@@ -32,7 +33,7 @@ void Link::draw(QGraphicsScene *scene) {
             y += (int) (dy * progress);
         }
 
-        QGraphicsRectItem *item = new QGraphicsRectItem(x, y, 2, 2);
+        QGraphicsRectItem *item = new QGraphicsRectItem(x, y, 3, 3);
         item->setBrush(QBrush(QColor(0, 0, 255)));
         scene->addItem(item);
         
