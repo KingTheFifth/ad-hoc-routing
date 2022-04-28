@@ -2,6 +2,10 @@
 #define POINT_H
 
 #include <QGraphicsScene>
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 struct Point {
     int x;
@@ -13,11 +17,16 @@ struct Point {
 
     void drawTo(Point* that, QGraphicsScene *scene) const;
 
-    double distanceTo(Point* that) const;
+    double distanceTo(const Point* that) const;
 
     double slopeTo(const Point* p) const;
 
     double angleTo(const Point* p) const;
+
+    string toString() const;
+
 };
+
+ostream& operator<<(ostream& out, const Point& p);
 
 #endif

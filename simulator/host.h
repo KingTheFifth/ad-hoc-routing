@@ -29,7 +29,7 @@ class Host {
 
         void addNeighbour(Host* host);
 
-        Point* getPos();
+        Point* getPos() const;
 
         void draw(QGraphicsScene *scene) const;
 
@@ -41,11 +41,11 @@ class Host {
 
         void moveTo(Point* target);
 
-        Link* DSR(Host* destination);
+        Link* DSR(Packet* packet);
 
-        Link* DSDV(Host* destination);
+        Link* DSDV(Packet* packet);
 
-        Link* GPSR(Point* position);
+        Link* GPSR(Packet* packet);
 
     private:
         Point* location;

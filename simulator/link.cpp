@@ -33,10 +33,9 @@ void Link::draw(QGraphicsScene *scene) {
             y += (int) (dy * progress);
         }
 
-        QGraphicsRectItem *item = new QGraphicsRectItem(x, y, 3, 3);
+        QGraphicsRectItem *item = new QGraphicsRectItem(x, y, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
         item->setBrush(QBrush(QColor(0, 0, 255)));
         scene->addItem(item);
-        
     }
 }
 

@@ -2,12 +2,15 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
 #include <cmath>
+#include <sstream>
 #include "constants.h"
+#include <iomanip>
+#include <iostream>
 
 Point::Point(int _x, int _y)
     : x(_x), y(_y) {}
 
-double Point::distanceTo(Point* that) const
+double Point::distanceTo(const Point* that) const
 {
     double dx = x - that->x;
     double dy = y - that->y;
@@ -16,7 +19,7 @@ double Point::distanceTo(Point* that) const
 
 void Point::draw(QGraphicsScene *scene) const
 {
-    QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x, y, 1, 1);
+    QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x, y, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE);
     item->setBrush(QBrush(QColor(255, 0, 0)));
     scene->addItem(item);
 }
@@ -45,4 +48,16 @@ double Point::angleTo(const Point* p) const {
     double angle = atan2(p->x - x, p->y - y);
     if (angle < 0) return PI - angle;
     return angle;
+}
+
+string Point::toString() const {
+    stringstream string;
+    string << "(" << std::fixed << std::setprecision(1) << std::showpoint
+        << x << ", " << y << ")";
+    return string.str();
+}
+
+ostream& operator <<(ostream& out, const Point& p) {
+    out << p.toString();
+    return out;
 }

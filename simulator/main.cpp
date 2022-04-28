@@ -76,12 +76,13 @@ int main(int argc, char *argv[])
 
             rndindex = rand() % hosts.size();
             Host* h2 = hosts[rndindex];
-
-            rndindex = rand() % h1->neighbours.size();
-            Link* l = h1->neighbours[rndindex];
-            h1->forwardPacket(new Packet(h1, h2), l);
+            
+            h1->receivePacket(new Packet(h1, h2));
             packets++;
-            cout << "Packets: " << packets << endl;
+            
+            if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
+            
+            // cout << "Packets: " << packets << endl;
         }
 
         scene->clear();

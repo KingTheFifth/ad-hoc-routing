@@ -41,3 +41,5 @@ Feature Backlog:
 - Packet retransmission at loss event?
 - DSDV: Keep track of no. changes in routing table => determine when to send table
 - TTL
+-
+- HIGH LEVEL STUFF: reduce network connections to a planarized graph
