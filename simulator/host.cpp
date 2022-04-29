@@ -32,13 +32,16 @@ void Host::draw(QGraphicsScene *scene) const {
     for (auto& neighbour : neighbours) {
         neighbour->draw(scene);
     }
-    for(auto& perimeter : perimeterLinks) {
-        perimeter->drawAsPerimeter(scene);
+    if (perimDrawCountdown > 0) {
+        for(auto& perimeter : perimeterLinks) {
+            perimeter->drawAsPerimeter(scene);
+        }
     }
 }
 
 void Host::tick(int currTime) {
     time = currTime;
+    if (perimDrawCountdown > 0) perimDrawCountdown--;
 
     for (auto& link : neighbours) {
         link->tick(currTime);
@@ -87,6 +90,7 @@ void Host::tick(int currTime) {
 }
 
 void Host::forwardPacket(Packet *packet, Link *link) {
+    perimDrawCountdown = 20;
     packet->prevPos = location;
     packet->nextHop = link->getOtherHost(this);
     cout << "Forwarding packet" << endl;
@@ -119,16 +123,18 @@ Link* Host::DSDV(Packet* packet) {
 }
 
 Link* Host::GPSR(Packet* packet) {
-    //cout << "packet " << packet <<  " - Doing GPSR with " << (packet->mode == Packet::Perimeter ? "PERIMETER" : "GREEDY") << " mode" << endl;
+    cout << "packet " << packet <<  " - Doing GPSR with " << (packet->mode == Packet::Perimeter ? "PERIMETER" : "GREEDY") << " mode" << endl;
     Point* previous = packet->prevPos;
     const Point* destination = packet->destPos;
 
     // Swap to Greedy mode if we are closer to the destination now than from the point of Greedy failure
     if (packet->mode == Packet::Perimeter &&
-        location->distanceTo(destination) < packet->failurePos->distanceTo(destination))
-        //cout << "packet " << packet << " - Swapping to Greedy mode" << endl;
+        location->distanceTo(destination) < packet->failurePos->distanceTo(destination)) {
+        cout << "packet " << packet << " - Swapping to Greedy mode" << endl;
         packet->mode = Packet::Greedy;
+    }
 
+    //cout << "Perimeter: " << (packet->mode == Packet::Perimeter) << ", Greedy: " << (packet->mode == Packet::Greedy) << endl;
     // Find the neighbour geographically closest to the destination
     Point* closestPos = location;
     Link* nextHopLink = nullptr;
@@ -140,30 +146,28 @@ Link* Host::GPSR(Packet* packet) {
                 nextHopLink = link;
             }
         }
-        /*if (closestPos->distanceTo(location) != 0)
+        if (closestPos->distanceTo(location) != 0)
             cout << "packet " << packet << " - Found a closer neighbour in Greedy mode" << endl;
         else
-            cout << "packet " << packet << " - Did not find a closer neighbour, soon switching to Perimeter" << endl;*/
+            cout << "packet " << packet << " - Did not find a closer neighbour, soon switching to Perimeter" << endl;
     }
 
     // If no geographically closer neighbour is found, switch to Perimeter routing
     if (closestPos->distanceTo(location) == 0 && packet->mode == Packet::Greedy) {
-        //cout << "packet " << packet << " - VERY soon switching to Perimeter" << endl;
         packet->mode = Packet::Perimeter;
         packet->failurePos = location;
 
         vector<Link*> perimeter;
-        //cout << "packet " << packet << " - Getting perimeter links..." << endl;
         getPerimeterLinks(&perimeter);
         getPerimeterLinks(&perimeterLinks);
-        //cout << "packet " << packet << " - Perimeter links gotten, getting RHR edge..." << endl;
         nextHopLink = getRHREdge(destination, &perimeter);
-        //cout << "packet " << packet << " - Found the next hop link by RHR :)" << endl;
+        cout << "packet " << packet << " - Got Perimeter Links, and found the next hop link by RHR :)" << endl;
     }
     else if (packet->mode == Packet::Perimeter) {
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
         getPerimeterLinks(&perimeterLinks);
+        cout << "Using prevPos: " << *previous << endl;
         Link* RHREdge = getRHREdge(previous, &perimeter);
         
         // Drop packet if host is isolated or whole perimeter is traversed (i.e. destination could not be reached)
@@ -195,19 +199,25 @@ Link* Host::GPSR(Packet* packet) {
 // can return null if this host is isolated
 Link* Host::getRHREdge(const Point* referencePoint, vector<Link*>* perimeterLinks) const {
     double referenceAngle = location->angleTo(referencePoint);
-    double smallestAngle = NULL;
-    Link* RHREdge = NULL;
+    cout << "Reference angle: " << referenceAngle * 180/PI << endl;
+    double smallestAngle = std::numeric_limits<double>::infinity();
+    Link* RHREdge = nullptr;
     for (Link* link : *perimeterLinks) {
         Point* perimNeighbourPos = link->getOtherHost(this)->getPos();
         double perimNeighbourAngle = location->angleTo(perimNeighbourPos);
-        if (perimNeighbourAngle < referenceAngle) perimNeighbourAngle += 2*PI;
+        if (perimNeighbourAngle <= referenceAngle) perimNeighbourAngle += 2*PI;
+        cout << "perimNeighbourAngle: " << perimNeighbourAngle * 180/PI << " (" << (perimNeighbourAngle > 2*PI ? (perimNeighbourAngle - 2*PI) * 180/PI : -1) << ")" << endl;
         
         double angleDiff = perimNeighbourAngle - referenceAngle;
-        if (!smallestAngle || angleDiff < smallestAngle) {
+        cout << "smallestAngle: "  << smallestAngle * 180/PI << endl;
+        cout << "angleDiff: "  << angleDiff * 180/PI << endl;
+        cout << "angleDiff < smallestAngle: "  << (angleDiff < smallestAngle) << endl;
+        if (angleDiff < smallestAngle) {
+            cout << "New smallest angle diff: " << angleDiff * 180/PI << endl;
             smallestAngle = angleDiff;
             RHREdge = link;
         }
-    }   
+    }
     return RHREdge;
 }
 

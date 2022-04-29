@@ -18,11 +18,18 @@ double Point::distanceTo(const Point* that) const
     return std::sqrt(dx*dx + dy*dy);
 }
 
-void Point::draw(QGraphicsScene *scene) const
+void Point::draw(QGraphicsScene *scene, bool special) const
 {
-    QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x, y, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE);
-    item->setBrush(QBrush(QColor(255, 0, 0)));
-    scene->addItem(item);
+    if (special) {
+        QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x, y, 5, 5);
+        item->setBrush(QBrush(QColor(0, 255, 255)));
+        scene->addItem(item);
+    }
+    else {
+        QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x, y, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE);
+        item->setBrush(QBrush(QColor(255, 0, 0)));
+        scene->addItem(item);
+    }
 }
 
 void Point::drawTo(Point* that, QGraphicsScene *scene) const
@@ -58,7 +65,7 @@ double Point::slopeTo(const Point* p) const {
 double Point::angleTo(const Point* p) const {
     if (x == p->x && y == p->y)
         return -std::numeric_limits<double>::infinity();  
-    double angle = atan2(p->x - x, p->y - y);
+    double angle = atan2(p->y - y, p->x - x);
     if (angle < 0) return 2*PI + angle;
     return angle;
 }
@@ -66,7 +73,7 @@ double Point::angleTo(const Point* p) const {
 string Point::toString() const {
     stringstream string;
     string << "(" << std::fixed << std::setprecision(1) << std::showpoint
-        << x << ", " << y << ")";
+        << x / WINDOW_SCALE << ", " << y / WINDOW_SCALE << ")";
     return string.str();
 }
 

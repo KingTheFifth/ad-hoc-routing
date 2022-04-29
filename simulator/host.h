@@ -84,6 +84,7 @@ class Host {
         unsigned id;
         Point* mobilityTarget;
         vector<Link*> perimeterLinks;
+        int perimDrawCountdown = 0; // remove sometime later
 
         /**
          * 

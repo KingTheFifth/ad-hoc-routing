@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     string topologyFileName = "portal.txt";
     ifstream input;
     input.open(topologyFileName);
-
+    
     vector<Host*> hosts;
 
     // Set up graphics
@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
 
     int packets = 0;
     int timeDelta;
+    Host* sender = hosts[73];
+    Host* receiver = hosts[16];
     while (true) { // Simulation is running (TODO: Do something different here)
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
         //cout << "Crossing: " << *getCrossing(new Point(0,0), new Point(5,5), new Point(2, 0), new Point(2,5)) << endl;
@@ -72,7 +74,7 @@ int main(int argc, char *argv[])
             host->tick(time);
         }
 
-        if (time % 100 == 0) {
+        if (false && time % 100 == 0) {
             int rndindex = rand() % hosts.size();
             Host* h1 = hosts[rndindex];
 
@@ -86,11 +88,18 @@ int main(int argc, char *argv[])
             
             // cout << "Packets: " << packets << endl;
         }
+        if (time == TICK_STEP) {
+            sender->receivePacket(new Packet(sender, receiver));
+        }
 
         scene->clear();
         for (auto& host : hosts) {
             host->draw(scene);
         }
+        
+        sender->getPos()->draw(scene, true);
+        receiver->getPos()->draw(scene, true);
+
         view->update();
         a.processEvents();
         time += TICK_STEP;
