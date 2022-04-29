@@ -19,8 +19,12 @@ struct Packet {
         int size = PACKET_SIZE;
         
         // GPSR specific
-        const Point* destPos; // TODO:change?
-        Point* prevPos; // is this the best way to do this?
+        const Point* destPos; // D
+        Point* prevPos; // Position of the host previously visited by the packet
+        Point* failurePos; // L_p
+        Point* destLineIntersect; // L_f
+        Host* firstEdgeInPerim; // e_0, stores the first link in current perimeter as the "second" host of the link
+
         enum GPSRMode {Greedy, Perimeter};
         GPSRMode mode = Greedy;
 

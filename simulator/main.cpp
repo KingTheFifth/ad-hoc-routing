@@ -8,6 +8,7 @@
 #include <thread>
 #include <chrono>
 #include "host.h"
+#include "point.h"
 
 using namespace std;
 
@@ -65,6 +66,7 @@ int main(int argc, char *argv[])
     int timeDelta;
     while (true) { // Simulation is running (TODO: Do something different here)
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
+        //cout << "Crossing: " << *getCrossing(new Point(0,0), new Point(5,5), new Point(2, 0), new Point(2,5)) << endl;
 
         for (auto& host : hosts) {
             host->tick(time);

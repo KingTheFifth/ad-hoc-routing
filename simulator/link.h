@@ -18,19 +18,27 @@ class Link {
          * Draws this link as a line between the two hosts of the link.
          */
         void draw(QGraphicsScene *scene);
-
-        Host* getOtherHost(Host *currentHost);
+        /**
+         * Draws this link as a line between the two hosts of the link, with special styling
+         */
+        void drawAsPerimeter(QGraphicsScene *scene);
 
         /**
-        * Puts given packet into the link's buffer while in transit
-        */
+         * 
+         */
+        Host* getOtherHost(const Host *currentHost);
+
+        /**
+         * Puts given packet into the link's buffer while in transit
+         */
         void forwardPacket(Packet *packet);
 
+        /**
+         * 
+         */
         void tick(int currTime);
 
     private:
-
-
         pair<Host*, Host*> hosts;
         int length; // To calculate a time delay over the link
         int time;

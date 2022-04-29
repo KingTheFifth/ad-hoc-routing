@@ -14,7 +14,7 @@ class Link;
 
 class Host {
     public:
-        Host(int _x, int _y, int _radius, int _time, unsigned _id)
+        Host(double _x, double _y, int _radius, int _time, unsigned _id)
         : radius(_radius), time(_time), id(_id), mobilityTarget(nullptr) {
             location = new Point(_x, _y);
         }
@@ -22,29 +22,59 @@ class Host {
         vector<Link*> neighbours;
         queue<Packet*> buffer;
 
-        /*
-        Adds all found neighbours to 'hosts'.
-        */
+        /**
+         * Adds all found neighbours to 'hosts'.
+         */
         void discoverNeighbours(vector<Host*>* hosts);
 
+        /**
+         * 
+         */
         void addNeighbour(Host* host);
 
+        /**
+         * 
+         */
         Point* getPos() const;
 
+        /**
+         * 
+         */
         void draw(QGraphicsScene *scene) const;
 
+        /**
+         * 
+         */
         void tick(int currTime);
 
+        /**
+         * 
+         */
         void forwardPacket(Packet* packet, Link* link);
 
+        /**
+         * 
+         */
         void receivePacket(Packet* packet);
 
+        /**
+         * 
+         */
         void moveTo(Point* target);
 
+        /**
+         * 
+         */
         Link* DSR(Packet* packet);
 
+        /**
+         * 
+         */
         Link* DSDV(Packet* packet);
 
+        /**
+         * 
+         */
         Link* GPSR(Packet* packet);
 
     private:
@@ -53,6 +83,18 @@ class Host {
         int time;
         unsigned id;
         Point* mobilityTarget;
+        vector<Link*> perimeterLinks;
+
+        /**
+         * 
+         */
+        void getPerimeterLinks(vector<Link*>* result);
+        void getPerimeterLinksGG(vector<Link*>* result);
+
+        /**
+         * 
+         */
+        Link* getRHREdge(const Point* referencePoint, vector<Link*>* perimeterLinks) const;
 };
 
 #endif
