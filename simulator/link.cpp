@@ -33,7 +33,7 @@ void Link::draw(QGraphicsScene *scene) {
             y += dy * progress;
         }
 
-        QGraphicsRectItem *item = new QGraphicsRectItem(x, y, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
+        QGraphicsRectItem *item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
         item->setBrush(QBrush(QColor(0, 0, 255)));
         scene->addItem(item);
 
@@ -52,7 +52,7 @@ Host* Link::getOtherHost(const Host *currentHost) {
 }
 
 void Link::forwardPacket(Packet *packet) {
-    cout << "Forwarding packet in link" << endl;
+    // cout << "Forwarding packet in link" << endl;
     pair<Packet*, int> transmission = make_pair(packet, length);
     linkBuffer.push_back(transmission);
 }

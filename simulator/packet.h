@@ -9,6 +9,7 @@
 using namespace std;
 
 class Host;
+class Link;
 
 struct Packet {
     public:
@@ -17,14 +18,19 @@ struct Packet {
         const Host* destination;
         Host* nextHop;
         int size = PACKET_SIZE;
+
+        // DSR specific
+        // :)
+
+        // DSDV specific
+        // :)
         
         // GPSR specific
         const Point* destPos; // D
         Point* prevPos; // Position of the host previously visited by the packet
         Point* failurePos; // L_p
         Point* destLineIntersect; // L_f
-        Host* firstEdgeInPerim; // e_0, stores the first link in current perimeter as the "second" host of the link
-
+        Link* firstEdgeInPerim; // e_0, stores the first link in current perimeter
         enum GPSRMode {Greedy, Perimeter};
         GPSRMode mode = Greedy;
 

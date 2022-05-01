@@ -39,9 +39,7 @@ Feature Backlog:
 - Destructors
 - Deallocate allocated memory where needed (link gets broken, end of simulation) => NO MEMORY LEAKS >:(
 - Packet retransmission at loss event?
-- DSDV: Keep track of no. changes in routing table => determine when to send table
+- DSDV: Keep track of no. changes in routing table => determine when to send table (hosts)
 - TTL
 - GPSR handle isolated host case (RHREdge is null -> put into buffer and try again later)
-- Make sure WINDOW_SCALE only affects drawing, not actual coordinates
 -
-- HIGH LEVEL STUFF: reduce network connections to a planarized graph

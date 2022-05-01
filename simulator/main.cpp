@@ -9,6 +9,7 @@
 #include <chrono>
 #include "host.h"
 #include "point.h"
+#include "constants.h"
 
 using namespace std;
 
@@ -34,7 +35,6 @@ int main(int argc, char *argv[])
     input >> radius;
     width *= WINDOW_SCALE;
     height *= WINDOW_SCALE;
-    radius *= WINDOW_SCALE;
 
     view->setScene(scene);
     view->scale(1, -1); //screen y-axis is inverted
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int time = 0;
     unsigned id = 0;
     while(input >> x >> y) {
-        hosts.push_back(new Host(x * WINDOW_SCALE, y * WINDOW_SCALE, radius, time, id));
+        hosts.push_back(new Host(x, y, radius, time, id));
         id++;
     }
     input.close();
@@ -64,8 +64,11 @@ int main(int argc, char *argv[])
 
     int packets = 0;
     int timeDelta;
-    Host* sender = hosts[73];
-    Host* receiver = hosts[16];
+
+    if (ONLY_ONE_PACKET) {
+        Host* sender = hosts[8];
+        Host* receiver = hosts[39];
+    }
     while (true) { // Simulation is running (TODO: Do something different here)
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
         //cout << "Crossing: " << *getCrossing(new Point(0,0), new Point(5,5), new Point(2, 0), new Point(2,5)) << endl;
@@ -74,7 +77,7 @@ int main(int argc, char *argv[])
             host->tick(time);
         }
 
-        if (false && time % 100 == 0) {
+        if (ONLY_ONE_PACKET == 0 && time % 100 == 0) {
             int rndindex = rand() % hosts.size();
             Host* h1 = hosts[rndindex];
 
@@ -88,7 +91,7 @@ int main(int argc, char *argv[])
             
             // cout << "Packets: " << packets << endl;
         }
-        if (time == TICK_STEP) {
+        if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) {
             sender->receivePacket(new Packet(sender, receiver));
         }
 
@@ -97,8 +100,10 @@ int main(int argc, char *argv[])
             host->draw(scene);
         }
         
-        sender->getPos()->draw(scene, true);
-        receiver->getPos()->draw(scene, true);
+        if (ONLY_ONE_PACKET) {
+            sender->getPos()->draw(scene, true);
+            receiver->getPos()->draw(scene, true);
+        }
 
         view->update();
         a.processEvents();
