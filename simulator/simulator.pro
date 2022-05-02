@@ -17,15 +17,25 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
-    host.cpp \
+    host/host.cpp \
+    host/GPSRHost.cpp \
+    host/DSDVHost.cpp \
+    host/DSRHost.cpp \
     link.cpp \
-    packet.cpp \
+    packet/packet.cpp \
+    packet/GPSRPacket.cpp \
     point.cpp
 
 HEADERS += \
-    host.h \
+    host/host.h \
+    host/GPSRHost.h \
+    host/DSDVHost.h \
+    host/DSRHost.h \
     link.h \
-    packet.h \
+    packet/packet.h \
+    packet/GPSRPacket.h \
+    packet/DSDVPacket.h \
+    packet/DSRPacket.h \
     point.h
 
 FORMS +=

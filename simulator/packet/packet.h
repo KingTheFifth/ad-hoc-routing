@@ -11,9 +11,13 @@ using namespace std;
 class Host;
 class Link;
 
-struct Packet {
+class Packet {
     public:
         Packet(const Host* _source, const Host* _destination);
+
+        // Copy constructor
+        Packet(const Packet& other);
+        
         const Host* source;
         const Host* destination;
         Host* nextHop;
@@ -26,13 +30,13 @@ struct Packet {
         // :)
         
         // GPSR specific
-        const Point* destPos; // D
-        Point* prevPos; // Position of the host previously visited by the packet
-        Point* failurePos; // L_p
-        Point* destLineIntersect; // L_f
-        Link* firstEdgeInPerim; // e_0, stores the first link in current perimeter
-        enum GPSRMode {Greedy, Perimeter};
-        GPSRMode mode = Greedy;
+        // const Point* destPos; // D
+        // Point* prevPos; // Position of the host previously visited by the packet
+        // Point* failurePos; // L_p
+        // Point* destLineIntersect; // L_f
+        // Link* firstEdgeInPerim; // e_0, stores the first link in current perimeter
+        // enum GPSRMode {Greedy, Perimeter};
+        // GPSRMode mode = Greedy;
 
     private:
         

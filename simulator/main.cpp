@@ -7,7 +7,10 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include "host.h"
+#include "host/host.h"
+#include "host/GPSRHost.h"
+#include "host/DSRHost.h"
+#include "host/DSDVHost.h"
 #include "point.h"
 #include "constants.h"
 
@@ -46,8 +49,24 @@ int main(int argc, char *argv[])
     int y;
     int time = 0;
     unsigned id = 0;
+
+    enum Protocol {DSDV, DSR, GPSR};
+    Protocol protocol = Protocol::GPSR;
+
     while(input >> x >> y) {
-        hosts.push_back(new Host(x, y, radius, time, id));
+        Host* host;
+        switch (protocol) {
+            case DSDV:
+                host = new DSDVHost(x, y, radius, time, id);
+                break;
+            case DSR: 
+                host = new DSRHost(x, y, radius, time, id);
+                break;
+            case GPSR:
+                host = new GPSRHost(x, y, radius, time, id);
+                break;
+        }
+        hosts.push_back(host);
         id++;
     }
     input.close();
@@ -64,10 +83,12 @@ int main(int argc, char *argv[])
 
     int packets = 0;
     int timeDelta;
-
+    
+    Host* sender;
+    Host* receiver;
     if (ONLY_ONE_PACKET) {
-        Host* sender = hosts[8];
-        Host* receiver = hosts[39];
+        sender = hosts[8];
+        receiver = hosts[39];
     }
     while (true) { // Simulation is running (TODO: Do something different here)
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
@@ -84,7 +105,7 @@ int main(int argc, char *argv[])
             rndindex = rand() % hosts.size();
             Host* h2 = hosts[rndindex];
             
-            h1->receivePacket(new Packet(h1, h2));
+            h1->receivePacket(new GPSRPacket(h1, h2)); // TODO: temporarily uses GPSR for now
             packets++;
             
             if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
@@ -92,7 +113,7 @@ int main(int argc, char *argv[])
             // cout << "Packets: " << packets << endl;
         }
         if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) {
-            sender->receivePacket(new Packet(sender, receiver));
+            //sender->receivePacket(new Packet(sender, receiver));
         }
 
         scene->clear();

@@ -4,7 +4,7 @@
 #include <utility>
 //#include "host.h"
 #include <QGraphicsScene>
-#include "packet.h"
+#include "packet/packet.h"
 #include <vector>
 
 using namespace std;

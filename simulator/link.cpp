@@ -1,5 +1,5 @@
 #include "link.h"
-#include "host.h"
+#include "host/host.h"
 #include <QGraphicsRectItem>
 
 Link::Link(Host *hostA, Host *hostB, int currTime) {
@@ -37,10 +37,12 @@ void Link::draw(QGraphicsScene *scene) {
         item->setBrush(QBrush(QColor(0, 0, 255)));
         scene->addItem(item);
 
+        /*
         const Point* d = it->first->destPos;
         const Point* failure = it->first->failurePos;
         if (d && failure)
             failure->drawToAsPerimeter(d, scene, true);
+        */
     }
 }
 void Link::drawAsPerimeter(QGraphicsScene *scene) { 
