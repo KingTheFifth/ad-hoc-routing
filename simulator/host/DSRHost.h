@@ -20,7 +20,8 @@ struct DSRHost : public Host {
 
             }
 
-            // Returns true if the given host is somehow reachable through this route
+            // Returns true if the given host is somehow reachable through this route. Target 
+            // does not necessarily have to be the last node of the route
             bool hasTarget(const Host* target) {
                 return false;
             }
@@ -33,9 +34,12 @@ struct DSRHost : public Host {
             }
         };
         vector<DSRRoute*> routes;
+        vector<Packet*> waitingForRouteBuffer;
 
         /**
          * 
          */
         Link* DSR(DSRPacket* packet);
+
+        Link* getCachedRoute(const Host* target);
 };

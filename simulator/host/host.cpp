@@ -118,6 +118,6 @@ void Host::moveTo(Point* target) {
 
 void Host::broadcast(Packet* packet) {
     for (Link* l : neighbours) {
-        forwardPacket(new Packet(*packet), l);
+        forwardPacket(packet->copy(), l); // TODO: This is broken
     }
 }

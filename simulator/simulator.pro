@@ -24,6 +24,8 @@ SOURCES += \
     link.cpp \
     packet/packet.cpp \
     packet/GPSRPacket.cpp \
+    packet/DSRPacket.cpp \
+    packet/DSDVPacket.cpp \
     point.cpp
 
 HEADERS += \

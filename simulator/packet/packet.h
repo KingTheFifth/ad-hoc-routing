@@ -13,30 +13,21 @@ class Link;
 
 class Packet {
     public:
+        Packet() {}
         Packet(const Host* _source, const Host* _destination);
 
         // Copy constructor
         Packet(const Packet& other);
+
+        virtual ~Packet() = default;
         
         const Host* source;
         const Host* destination;
         Host* nextHop;
         int size = PACKET_SIZE;
 
-        // DSR specific
-        // :)
-
-        // DSDV specific
-        // :)
-        
-        // GPSR specific
-        // const Point* destPos; // D
-        // Point* prevPos; // Position of the host previously visited by the packet
-        // Point* failurePos; // L_p
-        // Point* destLineIntersect; // L_f
-        // Link* firstEdgeInPerim; // e_0, stores the first link in current perimeter
-        // enum GPSRMode {Greedy, Perimeter};
-        // GPSRMode mode = Greedy;
+        virtual void copyOther(const Packet& other);
+        virtual Packet* copy() = 0;
 
     private:
         

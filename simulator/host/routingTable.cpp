@@ -18,9 +18,11 @@ void RoutingTable::remove(Host* destination){
     for (vector<Row*>::iterator it = entries.begin(); it != entries.end(); it++){
         if((*it)->destination == destination){
             entries.erase(it);
+            break;
         }
     }
 }
+
 void RoutingTable::update(RoutingTable* otherTable){
     return;
 }
