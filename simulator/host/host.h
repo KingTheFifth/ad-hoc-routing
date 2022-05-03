@@ -17,7 +17,7 @@ class Link;
 class Host {
     public:
         Host(double _x, double _y, int _radius, int _time, unsigned _id)
-        : radius(_radius), time(_time), id(_id), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY) {
+        : radius(_radius), time(_time), id(_id), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0) {
             location = new Point(_x, _y);
         }
 
@@ -42,6 +42,11 @@ class Host {
         Point* getPos() const;
 
         /**
+        *
+        */
+        double distanceTo(Host* host) const;
+
+        /**
          * 
          */
         void draw(QGraphicsScene *scene) const;
@@ -49,7 +54,7 @@ class Host {
         /**
          * 
          */
-        virtual void tick(int currTime);
+        void tick(int currTime);
 
         /**
          * Given a packet and a link begins transmitting the packet over the link. The actual sending of the packet 
@@ -78,7 +83,7 @@ class Host {
         int time;
         unsigned id;
         Point* mobilityTarget;
-        pair<Packet*, Link*> transmitBuffer;
+        queue<pair<Packet*, Link*>> transmitBuffer;
         int processingCountdown;
         int transmitCountdown;
 
@@ -91,6 +96,8 @@ class Host {
         void broadcast(Packet* packet);
 
         virtual void processPacket(Packet* packet) = 0;
+
+        Link* getLinkToHost(const Host* target);
 };
 
 #endif

@@ -1,3 +1,6 @@
+#ifndef GPSRHOST_H
+#define GPSRHOST_H
+
 #include "host.h"
 #include "packet/GPSRPacket.h"
 
@@ -28,3 +31,5 @@ struct GPSRHost : public Host {
          */
         Link* getRHREdge(const Point* referencePoint, vector<Link*>* perimeterLinks) const;
 };
+
+#endif

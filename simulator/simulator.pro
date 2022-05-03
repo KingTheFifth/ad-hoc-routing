@@ -33,6 +33,7 @@ HEADERS += \
     host/GPSRHost.h \
     host/DSDVHost.h \
     host/DSRHost.h \
+    host/DSRRoute.h \
     link.h \
     packet/packet.h \
     packet/GPSRPacket.h \

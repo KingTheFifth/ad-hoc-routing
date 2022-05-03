@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     unsigned id = 0;
 
     enum Protocol {DSDV, DSR, GPSR};
-    Protocol protocol = Protocol::GPSR;
+    Protocol protocol = Protocol::DSR;
 
     while(input >> x >> y) {
         Host* host;
@@ -104,8 +104,12 @@ int main(int argc, char *argv[])
 
             rndindex = rand() % hosts.size();
             Host* h2 = hosts[rndindex];
+            while (h2 == h1) {
+                rndindex = rand() % hosts.size();
+                h2 = hosts[rndindex];
+            }
             
-            h1->receivePacket(new GPSRPacket(h1, h2)); // TODO: temporarily uses GPSR for now
+            h1->receivePacket(new DSRPacket(h1, h2)); // TODO: temporarily uses GPSR for now
             packets++;
             
             if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
@@ -113,7 +117,7 @@ int main(int argc, char *argv[])
             // cout << "Packets: " << packets << endl;
         }
         if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) {
-            //sender->receivePacket(new Packet(sender, receiver));
+            sender->receivePacket(new DSRPacket(sender, receiver));
         }
 
         scene->clear();

@@ -1,3 +1,6 @@
+#ifndef DSDVPACKET_H
+#define DSDVPACKET_H
+
 #include "packet.h"
 
 struct DSDVPacket : public Packet {
@@ -5,3 +8,5 @@ struct DSDVPacket : public Packet {
 
     virtual ~DSDVPacket() = default;
 };
+
+#endif

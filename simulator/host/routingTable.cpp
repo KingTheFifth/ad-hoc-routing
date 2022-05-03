@@ -6,12 +6,9 @@ vector<Host*>* RoutingTable::getRoute(Host *destination){
     return &(tableEntry->route);
 }
 
-void RoutingTable::insert(Host* destination, vector<Host*> route, int cost, int sequenceNumber, int installTime){
-    //Create new row
-}
-
-void RoutingTable::insert(Host* destination, Host* route, int cost, int sequenceNumber, int installTime){
-    //Create route vector and call other insert function
+void RoutingTable::insert(Host* destination, Host* route, double cost, pair<Host*, unsigned) sequenceNumber){
+    Row* row = new Row(destination, route, cost, sequenceNumber);
+    entries.push_back(row);
 }
 
 void RoutingTable::remove(Host* destination){
@@ -24,7 +21,42 @@ void RoutingTable::remove(Host* destination){
 }
 
 void RoutingTable::update(RoutingTable* otherTable){
-    return;
+    //Every time we get a routing update, we should check if our distance to neighbour needs updating.
+    Row* neighbour = getEntry(otherTable[0]->destination);
+    if (neighbour == nullptr){
+        insert(otherTable[0])
+    }
+    else {
+        double newCost = entries[0]->destination->distanceTo(otherTable[0]->destination);
+        if(newCost < neighbour->cost){
+            updateCost(neighbour, newCost)
+        }
+    }
+    vector<Row*>::iterator otherEntry = otherTable->getEntries()->begin();
+    while(otherEntry != otherTable->getEntries()->end()){
+        for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
+            if(otherEntry->destination == ourEntry->destination){
+                double routeCost = entries[0]->destination->distanceTo(otherTable[0]->destination) + otherEntry->cost;
+                if (routeCost <= ourEntry->cost){
+                    insert(otherEntry->destination, otherTable[0]->destination, routeCost, otherEntry.sequenceNumber);
+                }
+                break;
+            }
+        }
+        double routeCost = entries[0]->destination->distanceTo(otherTable[0]->destination) + otherEntry->cost;
+        insert(otherEntry->destination, otherTable[0]->destination, routeCost, otherEntry.sequenceNumber);
+    }
+}
+
+void RoutingTable::updateCost(Row* row, double cost){
+    row->cost = cost;
+    row->hasChanged = true;
+}
+
+Routingtable* RoutingTable::getChanges(){
+    //TODO: Make sure to set row.hasChanged to false after we broadcast a route.
+    //TODO: create new table from all changed entries.
+    return nullptr;
 }
 
 Row* RoutingTable::getEntry(Host* host){
@@ -36,4 +68,8 @@ Row* RoutingTable::getEntry(Host* host){
         }
     }
     return entry;
+}
+
+vector<Row*>* RoutingTable::getEntries(){
+    return &entries;
 }

@@ -1,5 +1,9 @@
+#ifndef DSDVHOST_H
+#define DSDVHOST_H
+
 #include "host.h"
 #include "packet/DSDVPacket.h"
+#include <utility>
 
 struct DSDVHost : public Host {
     public:
@@ -14,10 +18,10 @@ struct DSDVHost : public Host {
         struct DSDVTable {
             Link* nextHop;
             Host* destination;
-            unsigned entryVersion; // of the relevant host we got the update from
+            pair<unsigned, unsigned> sequenceNumber; // first is hostID, second is sequenceNumber
             unsigned cost; // amount of hops
         };
-        unsigned tableVersion = 0; // TODO: set init value at a better time?
+        unsigned sequenceNumber = 0; // TODO: set init value at a better time?
         vector<DSDVTable> routes;
 
         /**
@@ -25,3 +29,5 @@ struct DSDVHost : public Host {
          */
         Link* DSDV(DSDVPacket* packet);
 };
+
+#endif

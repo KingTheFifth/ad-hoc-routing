@@ -27,6 +27,10 @@ Point* Host::getPos() const {
     return location;
 }
 
+double Host::distanceTo(Host* host) const {
+    return getPos()->distanceTo(host->getPos());
+}
+
 void Host::draw(QGraphicsScene *scene) const {
     location->draw(scene);
     for (auto& neighbour : neighbours) {
@@ -65,11 +69,13 @@ void Host::tick(int currTime) {
         processingCountdown -= timeDelta;
     }
     
-    if (transmitCountdown <= 0 && transmitBuffer.first != nullptr) {
-        transmitPacket(transmitBuffer.first, transmitBuffer.second);
-        transmitBuffer = make_pair(nullptr, nullptr);
+    if (transmitCountdown <= 0 && !transmitBuffer.empty()) {
+        pair<Packet*, Link*> packetLink = transmitBuffer.front();
+        transmitBuffer.pop();
+        transmitPacket(packetLink.first, packetLink.second);
+        transmitCountdown = HOST_TRANSMISSION_DELAY;
     }
-    if (transmitCountdown > 0) {
+    if (transmitCountdown > 0 && !transmitBuffer.empty()) {
         transmitCountdown -= timeDelta;
     }
 
@@ -94,8 +100,7 @@ void Host::tick(int currTime) {
 void Host::forwardPacket(Packet *packet, Link *link) {
     perimDrawCountdown = 20;
     packet->nextHop = link->getOtherHost(this);
-    transmitBuffer = make_pair(packet, link);
-    transmitCountdown = HOST_TRANSMISSION_DELAY;
+    transmitBuffer.push(make_pair(packet, link));
 }
 
 void Host::transmitPacket(Packet *packet, Link *link) {
@@ -118,6 +123,13 @@ void Host::moveTo(Point* target) {
 
 void Host::broadcast(Packet* packet) {
     for (Link* l : neighbours) {
-        forwardPacket(packet->copy(), l); // TODO: This is broken
+        forwardPacket(packet->copy(), l);
     }
+}
+
+Link* Host::getLinkToHost(const Host* target) {
+    for (Link* l : neighbours) {
+        if (l->getOtherHost(this) == target) return l;
+    }
+    return nullptr;
 }
