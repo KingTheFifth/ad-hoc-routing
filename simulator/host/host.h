@@ -7,6 +7,7 @@
 #include <utility>
 //#include "link.h"
 #include "packet/packet.h"
+#include "StatisticsHandler.h"
 #include "point.h"
 #include "constants.h"
 
@@ -16,8 +17,8 @@ class Link;
 
 class Host {
     public:
-        Host(double _x, double _y, int _radius, int _time, unsigned _id)
-        : radius(_radius), time(_time), id(_id), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0) {
+        Host(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
+        : statistics(_statistics), radius(_radius), time(_time), id(_id), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0) {
             location = new Point(_x, _y);
         }
 
@@ -78,6 +79,7 @@ class Host {
         void moveTo(Point* target);
 
     protected:
+        StatisticsHandler* statistics;
         Point* location;
         int radius;
         int time;

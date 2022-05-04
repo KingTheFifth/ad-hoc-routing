@@ -6,8 +6,8 @@
 
 struct GPSRHost : public Host {
     public:
-        GPSRHost(double _x, double _y, int _radius, int _time, unsigned _id)
-            : Host(_x, _y, _radius, _time, _id) {}
+        GPSRHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
+            : Host(_statistics, _x, _y, _radius, _time, _id) {}
 
         ~GPSRHost() = default;
 

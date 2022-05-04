@@ -13,6 +13,7 @@
 #include "host/DSDVHost.h"
 #include "point.h"
 #include "constants.h"
+#include "StatisticsHandler.h"
 
 using namespace std;
 
@@ -32,10 +33,12 @@ int main(int argc, char *argv[])
     int width;
     int height;
     int radius;
+    int simulationTime;
 
     input >> width;
     input >> height;
     input >> radius;
+    input >> simulationTime;
     width *= WINDOW_SCALE;
     height *= WINDOW_SCALE;
 
@@ -53,17 +56,19 @@ int main(int argc, char *argv[])
     enum Protocol {DSDV, DSR, GPSR};
     Protocol protocol = Protocol::DSR;
 
+    StatisticsHandler* statistics = new StatisticsHandler();
+
     while(input >> x >> y) {
         Host* host;
         switch (protocol) {
             case DSDV:
-                host = new DSDVHost(x, y, radius, time, id);
+                host = new DSDVHost(statistics, x, y, radius, time, id);
                 break;
             case DSR: 
-                host = new DSRHost(x, y, radius, time, id);
+                host = new DSRHost(statistics, x, y, radius, time, id);
                 break;
             case GPSR:
-                host = new GPSRHost(x, y, radius, time, id);
+                host = new GPSRHost(statistics, x, y, radius, time, id);
                 break;
         }
         hosts.push_back(host);
@@ -90,13 +95,10 @@ int main(int argc, char *argv[])
         sender = hosts[8];
         receiver = hosts[39];
     }
-    while (true) { // Simulation is running (TODO: Do something different here)
+    while (time < simulationTime) { // Simulation is running (TODO: Do something different here. Simulation time in input file?)
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
-        //cout << "Crossing: " << *getCrossing(new Point(0,0), new Point(5,5), new Point(2, 0), new Point(2,5)) << endl;
 
-        for (auto& host : hosts) {
-            host->tick(time);
-        }
+        for (auto& host : hosts) host->tick(time);
 
         if (ONLY_ONE_PACKET == 0 && time % 100 == 0) {
             int rndindex = rand() % hosts.size();
@@ -108,16 +110,34 @@ int main(int argc, char *argv[])
                 rndindex = rand() % hosts.size();
                 h2 = hosts[rndindex];
             }
-            
-            h1->receivePacket(new DSRPacket(h1, h2)); // TODO: temporarily uses GPSR for now
+
+            switch (protocol) {
+                case DSDV:
+                    // h1->receivePacket(new DSDVPacket(h1, h2));
+                    break;
+                case DSR: 
+                    h1->receivePacket(new DSRPacket(h1, h2));
+                    break;
+                case GPSR:
+                    h1->receivePacket(new GPSRPacket(h1, h2));
+                    break;
+            }
             packets++;
             
             if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
-            
-            // cout << "Packets: " << packets << endl;
         }
-        if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) {
-            sender->receivePacket(new DSRPacket(sender, receiver));
+        else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) {
+            switch (protocol) {
+                case DSDV:
+                    // sender->receivePacket(new DSDVPacket(sender, receiver));
+                    break;
+                case DSR: 
+                    sender->receivePacket(new DSRPacket(sender, receiver));
+                    break;
+                case GPSR:
+                    sender->receivePacket(new GPSRPacket(sender, receiver));
+                    break;
+            }
         }
 
         scene->clear();
@@ -138,6 +158,8 @@ int main(int argc, char *argv[])
 
         this_thread::sleep_for(chrono::milliseconds(timeDelta));
     }
+
+    cout << statistics->toString() << endl;
 
     return a.exec();
 }

@@ -7,11 +7,13 @@ void GPSRHost::processPacket(Packet* packet) {
     
     GPSRPacket* gpsrPacket = (GPSRPacket*) packet;
     if (location->distanceTo(gpsrPacket->destPos) < CLOSE_THRESHOLD) {
+        statistics->dataPacketsArrived++;
         delete gpsrPacket;
     }
     else {
         Link* l = GPSR(gpsrPacket);
         if (l != nullptr) {
+            if (gpsrPacket->source == this) statistics->dataPacketsSent++;
             gpsrPacket->prevPos = location;
             forwardPacket(gpsrPacket, l);
         }

@@ -7,8 +7,8 @@
 
 struct DSDVHost : public Host {
     public:
-        DSDVHost(double _x, double _y, int _radius, int _time, unsigned _id)
-            : Host(_x, _y, _radius, _time, _id) {}
+        DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
+            : Host(_statistics, _x, _y, _radius, _time, _id) {}
         
         ~DSDVHost() = default;
 

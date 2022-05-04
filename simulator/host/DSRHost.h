@@ -8,8 +8,8 @@
 
 struct DSRHost : public Host {
     public:
-        DSRHost(double _x, double _y, int _radius, int _time, unsigned _id)
-            : Host(_x, _y, _radius, _time, _id), requestIDCounter(0) {}
+        DSRHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
+            : Host(_statistics, _x, _y, _radius, _time, _id), requestIDCounter(0) {}
         // void tick(int currTime);
 
         ~DSRHost() = default;
@@ -27,7 +27,9 @@ struct DSRHost : public Host {
          */
         Link* DSR(DSRPacket* packet);
 
-        Link* getCachedRoute(const Host* target);
+        Link* getCachedNextHop(const Host* target);
+
+        DSRRoute* getCachedRoute(const Host* target);
 
         bool shouldBeDropped(const DSRPacket* packet);
 };

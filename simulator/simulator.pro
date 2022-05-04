@@ -39,7 +39,8 @@ HEADERS += \
     packet/GPSRPacket.h \
     packet/DSDVPacket.h \
     packet/DSRPacket.h \
-    point.h
+    point.h \
+    StatisticsHandler.h
 
 FORMS +=
 
