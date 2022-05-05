@@ -4,7 +4,7 @@
 //TODO: Implement sequence numbers. Look up how sequence numbers work first.
 //Specifically who discovers and broadcasts a broken link and with what sequence number.
 
-DSDVHost* RoutingTable::getNextHop(DSDVHost *destination){
+DSDVHost* RoutingTable::getNextHop(const DSDVHost *destination){
     struct Row* tableEntry = getEntry(destination);
     if (tableEntry == nullptr) { return nullptr; }
     return tableEntry->nextHop;
@@ -74,7 +74,7 @@ RoutingTable* RoutingTable::getChanges(){
     //TODO: create new table from all changed entries.
 }
 
-Row* RoutingTable::getEntry(DSDVHost* host){
+Row* RoutingTable::getEntry(const DSDVHost* host){
     Row* entry = nullptr;
     for (vector<Row*>::iterator it = entries.begin(); it != entries.end(); it++){
         if((*it)->destination == host){

@@ -29,7 +29,7 @@ struct Row {
 class RoutingTable {
     public:
         // RoutingTable();
-        DSDVHost* getNextHop(DSDVHost* destination);
+        DSDVHost* getNextHop(const DSDVHost* destination);
         void insert(DSDVHost* destination, DSDVHost* nextHop, double cost, pair<DSDVHost*, unsigned> sequenceNumber);
         void remove(DSDVHost* destination);
         void update(RoutingTable* otherTable); //updates local routing table from other table
@@ -38,7 +38,7 @@ class RoutingTable {
         vector<Row*>* getEntries();
         vector<Row*> entries;
     private:
-        Row* getEntry(DSDVHost* host);
+        Row* getEntry(const DSDVHost* host);
 };
 
 
