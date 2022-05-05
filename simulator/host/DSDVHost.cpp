@@ -1,6 +1,7 @@
 #include "DSDVHost.h"
 #include "link.h"
 #include "routingTable.h"
+#include "packet/DSDVPacket.h"
 
 DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
             : Host(_statistics, _x, _y, _radius, _time, _id) {
@@ -8,20 +9,28 @@ DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _ra
                 routingTable->insert(this, this, 0.0, make_pair(this, (unsigned) 0));
                 }
 
-Link* DSDVHost::DSDV(DSDVPacket* packet) {
-    // Do DSDV
-}
-
 void DSDVHost::processPacket(Packet* packet) {
-    //Check if packet contains a routingTable, if so run updateTable
-    //broadcast updates
-
-    //If not a routingTable packet, lookup nexthop and forward.
+    DSDVPacket* dsdvPacket = (DSDVPacket*) packet;
+    DSDVPacket::PacketType type = dsdvPacket->packetType;
+    if (type == DSDVPacket::BROADCAST){ //We received a broadcasted routing table. Update ours
+        routingTable->update(dsdvPacket->routingTable);
+        RoutingTable* ourChanges = routingTable->getChanges();
+        broadcastTable(ourChanges);
+    }
+    else { //Normal data packet.
+        const DSDVHost* dest = (DSDVHost*)(dsdvPacket->destination);
+        DSDVHost* nextHop = routingTable->getNextHop(dest);
+        if(nextHop != nullptr){ //Destination found in table
+            Link* link = getLinkToHost((Host*)nextHop);
+            transmitBuffer.push(make_pair(dsdvPacket, link));
+        }
+        //DSDV does not handle cases where no destination is found, since all hosts should be familiar. Drop the packet.
+    }
 }
 
 void DSDVHost::broadcastTable(RoutingTable* table){
     DSDVPacket* broadcast = new DSDVPacket(); //create packet of BROADCAST type with pointer to table
     for(vector<Link*>::iterator neighbour = neighbours.begin(); neighbour != neighbours.end(); neighbour++){
-
+        forwardPacket(broadcast, *neighbour);
     }
 }
