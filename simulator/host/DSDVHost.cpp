@@ -24,13 +24,16 @@ void DSDVHost::processPacket(Packet* packet) {
             Link* link = getLinkToHost((Host*)nextHop);
             transmitBuffer.push(make_pair(dsdvPacket, link));
         }
-        //DSDV does not handle cases where no destination is found, since all hosts should be familiar. Drop the packet.
+        //DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
     }
 }
 
-void DSDVHost::broadcastTable(RoutingTable* table){
-    DSDVPacket* broadcast = new DSDVPacket(); //create packet of BROADCAST type with pointer to table
+void DSDVHost::broadcastTable(RoutingTable* table) {
+    DSDVPacket* broadcast = new DSDVPacket(this, nullptr, time); //create packet of BROADCAST type with pointer to table
+    broadcast->packetType = DSDVPacket::BROADCAST;
+    broadcast->routingTable = table;
+    broadcast->source = this;
     for(vector<Link*>::iterator neighbour = neighbours.begin(); neighbour != neighbours.end(); neighbour++){
-        forwardPacket(broadcast, *neighbour);
+        forwardPacket(broadcast->copy(), *neighbour);
     }
 }

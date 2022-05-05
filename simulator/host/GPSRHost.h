@@ -13,6 +13,7 @@ struct GPSRHost : public Host {
 
     protected:
         void processPacket(Packet* packet) override;
+        // void tick(int currTime) override;
     private:
         // vector<Link*> perimeterLinks;
 

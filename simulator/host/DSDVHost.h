@@ -14,12 +14,12 @@ class DSDVHost : public Host {
         
         ~DSDVHost() = default;
 
+        RoutingTable* routingTable;
+        void broadcastTable(RoutingTable* table);
     protected:
         void processPacket(Packet* packet);
     private:
-        RoutingTable* routingTable;
 
-        void broadcastTable(RoutingTable* table);
 
         /**
          * 

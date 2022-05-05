@@ -1,6 +1,8 @@
 #include "GPSRHost.h"
 #include "link.h"
 
+// void GPSRHost::tick(int currTime)
+
 void GPSRHost::processPacket(Packet* packet) {
     // Either packet has arrived at the destination or the packet is processed and later forwarded
     // DYNAMIC CAST!

@@ -11,6 +11,7 @@
 #include "host/GPSRHost.h"
 #include "host/DSRHost.h"
 #include "host/DSDVHost.h"
+#include "host/routingTable.h"
 #include "point.h"
 #include "constants.h"
 #include "StatisticsHandler.h"
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFilename = "small_dense.txt";
+    string topologyFilename = "triangle.txt";
     string eventsFilename = "events.txt";
     ifstream input;
     input.open(topologyFilename);
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
     int time = 0;
     unsigned id = 0;
 
-    Protocol protocol = Protocol::DSR;
+    Protocol protocol = Protocol::DSDV;
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     //int quitDelay = 10000; // TODO: do this properly
@@ -92,6 +93,12 @@ int main(int argc, char *argv[])
     // let all hosts find their neighbours
     for (auto& host : hosts) {
         host->discoverNeighbours(&hosts);
+    }
+
+    if (protocol == Protocol::DSDV) {
+        DSDVHost* startHost = (DSDVHost*) hosts[0];
+        RoutingTable* ourChanges = startHost->routingTable->getChanges();
+        startHost->broadcastTable(ourChanges);
     }
 
     // draw the network
@@ -129,6 +136,7 @@ int main(int argc, char *argv[])
 
         if (ONLY_ONE_PACKET == 0 && time % 80 == 0) {
             Event* nextEvent = eventHandler->nextEvent();
+            if (protocol == Protocol::DSDV) nextEvent = nullptr; // debug
             if (!nextEvent) {
                 eventsDone = true;
             }
@@ -159,7 +167,7 @@ int main(int argc, char *argv[])
         else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) { // DEBUG
             switch (protocol) {
                 case DSDV:
-                    // sender->receivePacket(new DSDVPacket(sender, receiver, time));
+                    sender->receivePacket(new DSDVPacket(sender, receiver, time));
                     break;
                 case DSR: 
                     sender->receivePacket(new DSRPacket(sender, receiver, time));
@@ -201,7 +209,7 @@ void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int 
     Host* h2 = (*hosts)[event->receiverId];
     switch (protocol) {
         case DSDV:
-            // h1->receivePacket(new DSDVPacket(h1, h2, time));
+            h1->receivePacket(new DSDVPacket(h1, h2, time));
             break;
         case DSR: 
             h1->receivePacket(new DSRPacket(h1, h2, time));
@@ -223,7 +231,7 @@ void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, Stat
     int y = event->y;
     switch (protocol) {
         case DSDV:
-            // newHost = new DSDVHost(statistics, x, y, radius, time, id);
+            newHost = new DSDVHost(statistics, x, y, radius, time, id);
             break;
         case DSR:
             newHost = new DSRHost(statistics, x, y, radius, time, id);

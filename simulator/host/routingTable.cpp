@@ -25,9 +25,20 @@ void RoutingTable::remove(DSDVHost* destination){
 }
 
 void RoutingTable::update(RoutingTable* otherTable){
-    DSDVHost* neighbourHost = otherTable->entries.front()->destination;
+    
+    DSDVHost* neighbourHost = otherTable->entries[0]->destination;
     DSDVHost* thisHost = entries[0]->destination;
-    bool neighbourChanged = (otherTable->entries.front()->sequenceNumber.second > getEntry(neighbourHost)->sequenceNumber.second);
+
+    bool neighbourChanged = false;
+    Row* neighbourEntry = getEntry(neighbourHost);
+    if(!neighbourEntry) {
+        insert(neighbourHost, neighbourHost, thisHost->distanceTo(neighbourHost), otherTable->entries[0]->sequenceNumber);
+        neighbourChanged = true;
+    }
+    else {
+        neighbourChanged = otherTable->entries[0]->sequenceNumber.second > neighbourEntry->sequenceNumber.second;
+    }
+
     for(vector<Row*>::iterator otherEntry = otherTable->entries.begin(); otherEntry != otherTable->entries.end(); otherEntry++){
         for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
             if((*otherEntry)->destination == (*ourEntry)->destination){ //found a matching destination
@@ -56,14 +67,16 @@ void RoutingTable::updateCost(Row* row, double cost){
 }
 
 RoutingTable* RoutingTable::getChanges(){
+    entries[0]->hasChanged = true;
     RoutingTable* tableChanges = new RoutingTable();
     for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
         if((*entry)->hasChanged){
             Row* newEntry = new Row(*entry);
             tableChanges->entries.push_back(newEntry);
+            (*entry)->hasChanged = false;
         }
     }
-    //TODO: Make sure to set row.hasChanged to false after we broadcast a route.
+    return tableChanges;
     //TODO: create new table from all changed entries.
 }
 
