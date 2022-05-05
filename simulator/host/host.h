@@ -78,6 +78,8 @@ class Host {
          */
         void moveTo(Point* target);
 
+        bool isIdle();
+
     protected:
         StatisticsHandler* statistics;
         Point* location;
@@ -90,7 +92,8 @@ class Host {
         int transmitCountdown;
 
         // debug
-        int perimDrawCountdown = 0; // TODO: remove sometime later
+        // int perimDrawCountdown = 0;
+        // vector<Link*> perimeterLinks;
 
         /**
          * Sends a copy of the packet to every neighbour of this host.

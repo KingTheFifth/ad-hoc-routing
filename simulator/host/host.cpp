@@ -36,18 +36,23 @@ void Host::draw(QGraphicsScene *scene) const {
     for (auto& neighbour : neighbours) {
         neighbour->draw(scene);
     }
+
+    // --- debug --- 
     /*if (perimDrawCountdown > 0) {
         for(auto& perimeter : perimeterLinks) {
             perimeter->drawAsPerimeter(scene);
         }
     }*/
+    // -------------
 }
 
 void Host::tick(int currTime) {
     int timeDelta = currTime - time;
     time = currTime;
     
-    if (perimDrawCountdown > 0) perimDrawCountdown--;
+    // --- debug --- 
+    //if (perimDrawCountdown > 0) perimDrawCountdown--;
+    // -------------
 
     for (auto& link : neighbours) {
         link->tick(currTime);
@@ -79,12 +84,12 @@ void Host::tick(int currTime) {
         transmitCountdown -= timeDelta;
     }
 
-    if (mobilityTarget != nullptr) {
+    if (HOST_MOBILITY && mobilityTarget != nullptr) {
         if (location->distanceTo(mobilityTarget) < CLOSE_THRESHOLD) {
             delete mobilityTarget;
             mobilityTarget = nullptr;
         }
-        else {
+        else if (time % (HOST_MOVEMENT_SPEED * TICK_STEP) == 0) {
             // Move towards mobilityTarget
             double step = HOST_MOVEMENT_STEP;
             double angle = location->angleTo(mobilityTarget);
@@ -101,13 +106,15 @@ void Host::tick(int currTime) {
 }
 
 void Host::forwardPacket(Packet *packet, Link *link) {
-    perimDrawCountdown = 20;
+    // --- debug --- 
+    //perimDrawCountdown = 20;
+    // -------------
+
     packet->nextHop = link->getOtherHost(this);
     transmitBuffer.push(make_pair(packet, link));
 }
 
 void Host::transmitPacket(Packet *packet, Link *link) {
-    // packet->prevPos = location;
     link->forwardPacket(packet);
 }
 
@@ -122,6 +129,10 @@ void Host::receivePacket(Packet* packet) {
 
 void Host::moveTo(Point* target) {
     mobilityTarget = target;
+}
+
+bool Host::isIdle() {
+    return receivingBuffer.empty() && transmitBuffer.empty();
 }
 
 void Host::broadcast(Packet* packet) {

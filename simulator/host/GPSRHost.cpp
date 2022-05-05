@@ -8,15 +8,16 @@ void GPSRHost::processPacket(Packet* packet) {
     GPSRPacket* gpsrPacket = (GPSRPacket*) packet;
     if (location->distanceTo(gpsrPacket->destPos) < CLOSE_THRESHOLD) {
         int delay = time - gpsrPacket->timeSent;
-        unsigned prevSum = statistics->avgDelay * statistics->dataPacketsArrived;
+        unsigned prevDelaySum = statistics->avgDelay * statistics->dataPacketsArrived;
+        double prevThroughputSum = statistics->avgThroughput * statistics->dataPacketsArrived;
         statistics->dataPacketsArrived++;
-        statistics->avgDelay = (double) (prevSum + delay) / (double) statistics->dataPacketsArrived;
+        statistics->avgDelay = (double) (prevDelaySum + delay) / (double) statistics->dataPacketsArrived;
+        statistics->avgThroughput = (prevThroughputSum + 1.0 / (double) delay) / (double) statistics->dataPacketsArrived;
         delete gpsrPacket;
     }
     else {
         Link* l = GPSR(gpsrPacket);
         if (l != nullptr) {
-            if (gpsrPacket->source == this) statistics->dataPacketsSent++;
             gpsrPacket->prevPos = location;
             forwardPacket(gpsrPacket, l);
         }
@@ -55,14 +56,14 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
 
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        getPerimeterLinks(&perimeterLinks);
+        //getPerimeterLinks(&perimeterLinks); // debug
         nextHopLink = getRHREdge(destination, &perimeter);
         packet->firstEdgeInPerim = nextHopLink;
     }
     else if (packet->mode == GPSRPacket::Perimeter) {
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        getPerimeterLinks(&perimeterLinks);
+        //getPerimeterLinks(&perimeterLinks); // debug
         Link* RHREdge = getRHREdge(previous, &perimeter);
         
         // Drop packet if host is isolated

@@ -1,22 +1,25 @@
 #include "link.h"
 #include "host/host.h"
 #include <QGraphicsRectItem>
+#include "constants.h"
+#include "packet/GPSRPacket.h" // debug
 
 Link::Link(Host *hostA, Host *hostB, int currTime) {
     hosts.first = hostA;
     hosts.second = hostB;
-    length = hostA->getPos()->distanceTo(hostB->getPos()) / WINDOW_SCALE;
+    // length = hostA->getPos()->distanceTo(hostB->getPos()) / WINDOW_SCALE;
     time = currTime;
 }
 
 void Link::draw(QGraphicsScene *scene) { 
     hosts.first->getPos()->drawTo(hosts.second->getPos(), scene);
-    for (vector<pair<Packet*, int>>::iterator it = linkBuffer.begin(); it != linkBuffer.end(); it++) {
+    for (vector<PacketOnLink*>::iterator it = linkBuffer.begin(); it != linkBuffer.end(); it++) {
         // TODO: extract into method :)
-        double progress = 1 - ((double) it->second / (double) length);    
 
-        Point* destination = it->first->nextHop->getPos();
-        Point* source = getOtherHost(it->first->nextHop)->getPos();
+        Point* destination = (*it)->packet->nextHop->getPos();
+        Point* source = getOtherHost((*it)->packet->nextHop)->getPos();
+        double progress = (double) (*it)->timeOnLink * LINK_SPEED / (double) (*it)->origin->distanceTo((destination));
+
         double y = source->y;
         double x = source->x;
         double dx = destination->x - x;
@@ -37,12 +40,14 @@ void Link::draw(QGraphicsScene *scene) {
         item->setBrush(QBrush(QColor(0, 0, 255)));
         scene->addItem(item);
 
-        /*
-        const Point* d = it->first->destPos;
-        const Point* failure = it->first->failurePos;
-        if (d && failure)
-            failure->drawToAsPerimeter(d, scene, true);
-        */
+        // --- debug --- 
+        // GPSRPacket* gpsrPacket = (GPSRPacket*) (*it)->packet;
+        // const Point* d = gpsrPacket->destPos;
+        // const Point* failure = gpsrPacket->failurePos;
+        // if (d && failure)
+        //     failure->drawToAsPerimeter(d, scene, true);
+        // -------------
+        
     }
 }
 void Link::drawAsPerimeter(QGraphicsScene *scene) { 
@@ -54,9 +59,11 @@ Host* Link::getOtherHost(const Host *currentHost) {
 }
 
 void Link::forwardPacket(Packet *packet) {
-    // cout << "Forwarding packet in link" << endl;
-    pair<Packet*, int> transmission = make_pair(packet, length);
-    linkBuffer.push_back(transmission);
+    PacketOnLink* packetOnLink = new PacketOnLink();
+    packetOnLink->packet = packet;
+    packetOnLink->timeOnLink = 0;
+    packetOnLink->origin = getOtherHost(packet->nextHop)->getPos();
+    linkBuffer.push_back(packetOnLink);
 }
 
 void Link::tick(int currTime) {
@@ -64,12 +71,14 @@ void Link::tick(int currTime) {
     if (timeDelta <= 0) return;
     time = currTime;
     
-    vector<pair<Packet*, int>>::iterator it = linkBuffer.begin();
+    vector<PacketOnLink*>::iterator it = linkBuffer.begin();
     while (it != linkBuffer.end()) {
-        it->second -= timeDelta;
-        if (it->second <= 0) {
-            it->first->nextHop->receivePacket(it->first);
+        PacketOnLink* p = *it;
+        p->timeOnLink += timeDelta;
+        if (p->timeOnLink * LINK_SPEED >= p->origin->distanceTo(p->packet->nextHop->getPos())) {
+            p->packet->nextHop->receivePacket(p->packet);
             it = linkBuffer.erase(it);
+            delete p;
             continue;
         }
         ++it;

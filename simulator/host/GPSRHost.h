@@ -14,7 +14,7 @@ struct GPSRHost : public Host {
     protected:
         void processPacket(Packet* packet) override;
     private:
-        vector<Link*> perimeterLinks;
+        // vector<Link*> perimeterLinks;
 
         /**
          * 

@@ -101,8 +101,8 @@ void DSRHost::processPacket(Packet* packet) {
                     waitingForRouteBuffer.erase(it);
                     routes.push_back(new DSRRoute(dsrPacket->route));
 
-                    statistics->packetsSent++;
-                    statistics->dataPacketsSent++;
+                    // statistics->packetsSent++;
+                    // statistics->dataPacketsSent++;
                     delete dsrPacket;
                     return; // TODO: Perhaps remove this? -> All packets going to the same destination are sent
                 }
@@ -123,9 +123,11 @@ void DSRHost::processPacket(Packet* packet) {
     else { // Other packets
         if (dsrPacket->destination == this) { // Arrived at destination
             int delay = time - dsrPacket->timeSent;
-            unsigned prevSum = statistics->avgDelay * statistics->dataPacketsArrived;
+            unsigned prevDelaySum = statistics->avgDelay * statistics->dataPacketsArrived;
+            double prevThroughputSum = statistics->avgThroughput * statistics->dataPacketsArrived;
             statistics->dataPacketsArrived++;
-            statistics->avgDelay = (double) (prevSum + delay) / (double) statistics->dataPacketsArrived;
+            statistics->avgDelay = (double) (prevDelaySum + delay) / (double) statistics->dataPacketsArrived;
+            statistics->avgThroughput = (prevThroughputSum + 1.0 / (double) delay) / (double) statistics->dataPacketsArrived;
             delete dsrPacket;
         }
         else { // Not yet at destination
@@ -136,8 +138,8 @@ void DSRHost::processPacket(Packet* packet) {
             else { // No route to follow, send the packet normally
                 Link* l = DSR(dsrPacket);
                 if (l) {                   
-                    statistics->packetsSent++;
-                    statistics->dataPacketsSent++;
+                    // statistics->packetsSent++;
+                    // statistics->dataPacketsSent++;
                     forwardPacket(dsrPacket, l);
                 }
             }

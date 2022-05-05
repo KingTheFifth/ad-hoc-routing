@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFilename = "portal.txt";
+    string topologyFilename = "small_dense.txt";
     string eventsFilename = "events.txt";
     ifstream input;
     input.open(topologyFilename);
@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
     int width;
     int height;
     int radius;
-    int simulationTime;
+    //int simulationTime;
 
     input >> width;
     input >> height;
     input >> radius;
-    input >> simulationTime;
+    //input >> simulationTime;
     width *= WINDOW_SCALE;
     height *= WINDOW_SCALE;
 
@@ -63,11 +63,10 @@ int main(int argc, char *argv[])
     int time = 0;
     unsigned id = 0;
 
-    int maxNumberOfPackets = 60; // temporary :)
     Protocol protocol = Protocol::DSR;
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
-    int quitDelay = 10000;
+    //int quitDelay = 10000; // TODO: do this properly
     bool eventsDone = false;
 
     eventHandler->loadEvents(eventsFilename);
@@ -102,6 +101,7 @@ int main(int argc, char *argv[])
 
     int packets = 0;
     int timeDelta;
+    int decay = radius * 2;
 
     Host* sender;
     Host* receiver;
@@ -109,23 +109,35 @@ int main(int argc, char *argv[])
         sender = hosts[8];
         receiver = hosts[39];
     }
-    while (time < simulationTime) { // Simulation is running (TODO: Do something different here. Simulation time in input file?)
+    while (decay > 0) { // Simulation is running
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
+
+        if (eventsDone) {
+            decay -= TICK_STEP;
+            for (auto& host : hosts) {
+                if (!(host->isIdle())) {
+                    decay = radius * 2;
+                    break;
+                } 
+            }
+        }
 
         for (auto& host : hosts) host->tick(time);
 
-        if (eventsDone) quitDelay -= TICK_STEP;
-        if (quitDelay <= 0) break;
+        //if (eventsDone) quitDelay -= TICK_STEP;
+        // if (quitDelay <= 0) break;
 
         if (ONLY_ONE_PACKET == 0 && time % 80 == 0) {
             Event* nextEvent = eventHandler->nextEvent();
-            if (!nextEvent)
+            if (!nextEvent) {
                 eventsDone = true;
+            }
             else {
-                cout << "New event of type " << nextEvent->eventType << endl;
                 switch (nextEvent->eventType) {
                     case Event::SEND:
                         packets++;
+                        statistics->packetsSent++;
+                        statistics->dataPacketsSent++;
                         handleSendEvent(nextEvent, &hosts, protocol, time);
                         break;
                     case Event::MOVE:
@@ -201,7 +213,6 @@ void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int 
 }
 
 void handleMoveEvent(Event* event, vector<Host*>* hosts) {
-    cout << "Out of the way! We are moving!" << endl;
     Point* p = new Point(event->x, event->y);
     (*hosts)[event->hostId]->moveTo(p);
 }

@@ -12,6 +12,7 @@ struct StatisticsHandler {
     unsigned dataPacketsArrived;
     unsigned routingPacketsSent; // Will be 0 for GPSR
     unsigned avgDelay;
+    double avgThroughput;
 
     string toString() {
         stringstream string;
@@ -20,7 +21,8 @@ struct StatisticsHandler {
         string << "Routing packets sent: " << routingPacketsSent << "\n";
         string << "Data packets arrived: " << dataPacketsArrived << "\n";
         string << "Data packets delivery ratio: " << fixed << setprecision(2)<< 100 * ((double) dataPacketsArrived) / ((double) dataPacketsSent) << "%\n";
-        string << "Average end-to-end packet delay: " << avgDelay << " \n";
+        string << "Average end-to-end packet delay: " << avgDelay << "\n";
+        string << "Average throughput: " << fixed << setprecision(10) << avgThroughput << "\n";
         return string.str();
     }
 };

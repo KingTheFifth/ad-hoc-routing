@@ -5,6 +5,7 @@ struct Event {
     enum EventType {SEND, JOIN, DISCONNECT, MOVE};
     EventType eventType;
 
+    // specific to SEND event
     unsigned senderId;
     unsigned receiverId;
     int bytes;

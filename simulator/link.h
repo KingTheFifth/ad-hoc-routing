@@ -11,6 +11,12 @@ using namespace std;
 
 class Host;
 
+struct PacketOnLink {
+    Packet* packet;
+    int timeOnLink;
+    Point* origin;
+};
+
 class Link {
     public:
         Link(Host *hostA, Host *hostB, int currTime);
@@ -40,10 +46,10 @@ class Link {
 
     private:
         pair<Host*, Host*> hosts;
-        int length; // To calculate a time delay over the link
+        //int length; // To calculate a time delay over the link
         int time;
 
-        vector<pair<Packet*, int>> linkBuffer;
+        vector<PacketOnLink*> linkBuffer;
 };
 
 #endif
