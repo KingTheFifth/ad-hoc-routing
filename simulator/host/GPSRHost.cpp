@@ -23,8 +23,10 @@ void GPSRHost::processPacket(Packet* packet) {
             gpsrPacket->prevPos = location;
             forwardPacket(gpsrPacket, l);
         }
-        else
+        else {
+            //cout << "Dropping packet " << gpsrPacket << ", due to perimeter loop" << endl;
             delete gpsrPacket;
+        }
     }
 }
 
@@ -58,14 +60,14 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
 
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        //getPerimeterLinks(&perimeterLinks); // debug
+        getPerimeterLinks(&perimeterLinks); // debug
         nextHopLink = getRHREdge(destination, &perimeter);
-        packet->firstEdgeInPerim = nextHopLink;
+        packet->firstEdgeInPerim = make_pair(this, nextHopLink->getOtherHost(this));
     }
     else if (packet->mode == GPSRPacket::Perimeter) {
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        //getPerimeterLinks(&perimeterLinks); // debug
+        getPerimeterLinks(&perimeterLinks); // debug
         Link* RHREdge = getRHREdge(previous, &perimeter);
         
         // Drop packet if host is isolated
@@ -80,11 +82,11 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
             packet->destLineIntersect = Lf;
             Point* newRHRReference = RHREdge->getOtherHost(this)->getPos();
             RHREdge = getRHREdge(newRHRReference, &perimeter);
-            packet->firstEdgeInPerim = RHREdge;
+            packet->firstEdgeInPerim = make_pair(this, RHREdge->getOtherHost(this));
         }
 
         // Drop packet if whole perimeter is traversed (i.e. destination could not be reached)
-        if (RHREdge == packet->firstEdgeInPerim) return nullptr;
+        if (this == packet->firstEdgeInPerim.first && RHREdge->getOtherHost(this) == packet->firstEdgeInPerim.second) return nullptr;
         nextHopLink = RHREdge; 
     }
     return nextHopLink;

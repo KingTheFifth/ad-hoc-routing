@@ -12,7 +12,7 @@ class GPSRPacket : public Packet {
         Point* prevPos; // Position of the host previously visited by the packet
         Point* failurePos; // L_p
         Point* destLineIntersect; // L_f
-        Link* firstEdgeInPerim; // e_0, stores the first link in current perimeter
+        pair<Host*, Host*> firstEdgeInPerim; // e_0, stores the first link in current perimeter, with a direction
         enum GPSRMode {Greedy, Perimeter};
         GPSRMode mode = Greedy;
 

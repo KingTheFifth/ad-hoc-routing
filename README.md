@@ -36,6 +36,7 @@ Implemented Features:
 - Unique host ID (incremental?)
 
 Feature Backlog:
+- Packet sizes
 - Destructors
 - Deallocate allocated memory where needed (link gets broken, end of simulation) => NO MEMORY LEAKS >:(
 - DSDV: Keep track of no. changes in routing table => determine when to send table (hosts)

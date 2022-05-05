@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFilename = "triangle.txt";
+    string topologyFilename = "large_sparse.txt";
     string eventsFilename = "events.txt";
     ifstream input;
     input.open(topologyFilename);
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     int time = 0;
     unsigned id = 0;
 
-    Protocol protocol = Protocol::DSDV;
+    Protocol protocol = Protocol::GPSR;
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     //int quitDelay = 10000; // TODO: do this properly
@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
                 switch (nextEvent->eventType) {
                     case Event::SEND:
                         packets++;
+                        //cout << "Packet " << packets << ", from: " << nextEvent->senderId << ": ";
                         statistics->packetsSent++;
                         statistics->dataPacketsSent++;
                         handleSendEvent(nextEvent, &hosts, protocol, time);
