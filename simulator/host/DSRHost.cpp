@@ -3,9 +3,10 @@
 
 // will this ever return nullptr?
 Link* DSRHost::DSR(DSRPacket* packet) {
-    Link* nextHopLink = getCachedNextHop(packet->destination);
-    if (nextHopLink) {
-        return nextHopLink;
+    DSRRoute* cachedRoute = getCachedRoute(packet->destination);
+    if (cachedRoute) {
+        packet->route = *cachedRoute;
+        return getLinkToHost(cachedRoute->getNextHop(this, false));
     }
     
     // if no
@@ -13,7 +14,7 @@ Link* DSRHost::DSR(DSRPacket* packet) {
         // send RREQ packet to all neighbours and return nullptr
     waitingForRouteBuffer.push_back(packet);
 
-    DSRPacket* RREQ = new DSRPacket(this, packet->destination);
+    DSRPacket* RREQ = new DSRPacket(this, packet->destination, time);
     RREQ->packetType = DSRPacket::RREQ;
     RREQ->requestID = requestIDCounter++;
     RREQ->route.addNode(this);
@@ -66,8 +67,6 @@ void DSRHost::processPacket(Packet* packet) {
                 RREP->packetType = DSRPacket::RREP;
                 RREP->destination = dsrPacket->source;
                 RREP->source = dsrPacket->destination;
-                
-                //cout << "Did some trimming!" << endl;
                 
                 RREP->route.addRoute(cachedRoute);
 
@@ -123,7 +122,10 @@ void DSRHost::processPacket(Packet* packet) {
 
     else { // Other packets
         if (dsrPacket->destination == this) { // Arrived at destination
+            int delay = time - dsrPacket->timeSent;
+            unsigned prevSum = statistics->avgDelay * statistics->dataPacketsArrived;
             statistics->dataPacketsArrived++;
+            statistics->avgDelay = (double) (prevSum + delay) / (double) statistics->dataPacketsArrived;
             delete dsrPacket;
         }
         else { // Not yet at destination
@@ -131,9 +133,10 @@ void DSRHost::processPacket(Packet* packet) {
                 Link* nextHop = getLinkToHost(dsrPacket->route.getNextHop(this, false));
                 forwardPacket(dsrPacket, nextHop);
             }
-            else { // No route to follow, forward the packet normally
+            else { // No route to follow, send the packet normally
                 Link* l = DSR(dsrPacket);
-                if (l) {
+                if (l) {                   
+                    statistics->packetsSent++;
                     statistics->dataPacketsSent++;
                     forwardPacket(dsrPacket, l);
                 }

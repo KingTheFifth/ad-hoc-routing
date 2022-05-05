@@ -23,10 +23,10 @@ Metrics:
 - Packet Delivery Ratio
 
 Events:
-- host X send A bytes to host Y OR (x, y)
-- host X disconnect
-- host X join at (x, y)
-- host X move to (x, y)
+- host P send A bytes to host Q              :   0 <P> <Q> <bytes>
+- host join at (x, y)                        :   1 <x> <y>
+- host P disconnect                          :   2 <P>
+- host P move to (x, y)                      :   3 <P> <x> <y>
 
 Implemented Features:
 - Drawing packets (time left on packet relative to length of link)

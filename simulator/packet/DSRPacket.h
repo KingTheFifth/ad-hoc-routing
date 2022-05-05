@@ -6,7 +6,7 @@
 
 struct DSRPacket : public Packet {
     DSRPacket() : Packet() {}
-    DSRPacket(const Host* _source, const Host* _destination);
+    DSRPacket(const Host* _source, const Host* _destination, int _time);
     virtual ~DSRPacket() = default;
 
     void copyOther(const Packet& other);

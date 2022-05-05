@@ -81,6 +81,7 @@ void Host::tick(int currTime) {
 
     if (mobilityTarget != nullptr) {
         if (location->distanceTo(mobilityTarget) < CLOSE_THRESHOLD) {
+            delete mobilityTarget;
             mobilityTarget = nullptr;
         }
         else {
@@ -90,8 +91,10 @@ void Host::tick(int currTime) {
             double dy = sin(angle) * step;
             double dx = cos(angle) * step;
 
+
             location->y += dy;
             location->x += dx;
+            cout << "Moving toward " << *mobilityTarget << ". Currently at " << location << endl;
         }
     }
     

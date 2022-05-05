@@ -11,7 +11,14 @@ class DSDVHost;
 struct Row {
     Row(DSDVHost* _destination, DSDVHost* _nextHop, double _cost, pair<DSDVHost*, unsigned> _sequenceNumber)
     : destination(_destination), nextHop(_nextHop), cost(_cost), sequenceNumber(_sequenceNumber){}
-    Row(Row* otherRow);
+    Row(const Row* that) {
+        destination = that->destination;
+        nextHop = that->nextHop;
+        cost = that->cost;
+        sequenceNumber = that->sequenceNumber;
+        hasChanged = that->hasChanged;
+    }
+    
     DSDVHost* destination;
     DSDVHost* nextHop; //For DSDV the route is just a single node (next-hop)
     double cost; //Cost in geographical (link) distance traversed by a route
@@ -19,19 +26,19 @@ struct Row {
     bool hasChanged = true;
 };
 
-class RoutingTable{
+class RoutingTable {
     public:
-        RoutingTable();
+        // RoutingTable();
         DSDVHost* getNextHop(DSDVHost* destination);
-        void insert(DSDVHost* destination, DSDVHost* route, double cost, pair<DSDVHost*, unsigned> sequenceNumber);
+        void insert(DSDVHost* destination, DSDVHost* nextHop, double cost, pair<DSDVHost*, unsigned> sequenceNumber);
         void remove(DSDVHost* destination);
         void update(RoutingTable* otherTable); //updates local routing table from other table
         void updateCost(Row* row, double cost);
         RoutingTable* getChanges();
         vector<Row*>* getEntries();
+        vector<Row*> entries;
     private:
         Row* getEntry(DSDVHost* host);
-        vector<Row*> entries;
 };
 
 

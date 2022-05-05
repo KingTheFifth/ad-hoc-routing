@@ -14,7 +14,7 @@ class Link;
 class Packet {
     public:
         Packet() {}
-        Packet(const Host* _source, const Host* _destination);
+        Packet(const Host* _source, const Host* _destination, int _time);
 
         // Copy constructor
         Packet(const Packet& other);
@@ -25,6 +25,7 @@ class Packet {
         const Host* destination;
         Host* nextHop;
         int size = PACKET_SIZE;
+        int timeSent;
 
         virtual void copyOther(const Packet& other);
         virtual Packet* copy() = 0;

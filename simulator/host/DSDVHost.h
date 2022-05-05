@@ -2,27 +2,24 @@
 #define DSDVHOST_H
 
 #include "host.h"
+// #include "routingTable.h"
 #include "packet/DSDVPacket.h"
 #include <utility>
 
-struct DSDVHost : public Host {
+class RoutingTable;
+
+class DSDVHost : public Host {
     public:
-        DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
-            : Host(_statistics, _x, _y, _radius, _time, _id) {}
+        DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id);
         
         ~DSDVHost() = default;
 
     protected:
         void processPacket(Packet* packet);
     private:
-        struct DSDVTable {
-            Link* nextHop;
-            Host* destination;
-            pair<unsigned, unsigned> sequenceNumber; // first is hostID, second is sequenceNumber
-            unsigned cost; // amount of hops
-        };
-        unsigned sequenceNumber = 0; // TODO: set init value at a better time?
-        vector<DSDVTable> routes;
+        RoutingTable* routingTable;
+
+        void broadcastTable(RoutingTable* table);
 
         /**
          * 

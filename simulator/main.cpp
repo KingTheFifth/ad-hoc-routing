@@ -14,8 +14,17 @@
 #include "point.h"
 #include "constants.h"
 #include "StatisticsHandler.h"
+#include "events/EventHandler.h"
+#include "events/Event.h"
 
 using namespace std;
+
+enum Protocol {DSDV, DSR, GPSR};
+
+void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int time);
+void handleMoveEvent(Event* event, vector<Host*>* hosts);
+void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id);
+void handleDisconnectEvent(Event* event, vector<Host*>* hosts);
 
 int main(int argc, char *argv[])
 {
@@ -23,9 +32,10 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFileName = "portal.txt";
+    string topologyFilename = "portal.txt";
+    string eventsFilename = "events.txt";
     ifstream input;
-    input.open(topologyFileName);
+    input.open(topologyFilename);
     
     vector<Host*> hosts;
 
@@ -53,10 +63,14 @@ int main(int argc, char *argv[])
     int time = 0;
     unsigned id = 0;
 
-    enum Protocol {DSDV, DSR, GPSR};
+    int maxNumberOfPackets = 60; // temporary :)
     Protocol protocol = Protocol::DSR;
-
     StatisticsHandler* statistics = new StatisticsHandler();
+    EventHandler* eventHandler = new EventHandler();
+    int quitDelay = 10000;
+    bool eventsDone = false;
+
+    eventHandler->loadEvents(eventsFilename);
 
     while(input >> x >> y) {
         Host* host;
@@ -88,7 +102,7 @@ int main(int argc, char *argv[])
 
     int packets = 0;
     int timeDelta;
-    
+
     Host* sender;
     Host* receiver;
     if (ONLY_ONE_PACKET) {
@@ -100,42 +114,46 @@ int main(int argc, char *argv[])
 
         for (auto& host : hosts) host->tick(time);
 
-        if (ONLY_ONE_PACKET == 0 && time % 100 == 0) {
-            int rndindex = rand() % hosts.size();
-            Host* h1 = hosts[rndindex];
+        if (eventsDone) quitDelay -= TICK_STEP;
+        if (quitDelay <= 0) break;
 
-            rndindex = rand() % hosts.size();
-            Host* h2 = hosts[rndindex];
-            while (h2 == h1) {
-                rndindex = rand() % hosts.size();
-                h2 = hosts[rndindex];
-            }
-
-            switch (protocol) {
-                case DSDV:
-                    // h1->receivePacket(new DSDVPacket(h1, h2));
-                    break;
-                case DSR: 
-                    h1->receivePacket(new DSRPacket(h1, h2));
-                    break;
-                case GPSR:
-                    h1->receivePacket(new GPSRPacket(h1, h2));
-                    break;
-            }
-            packets++;
+        if (ONLY_ONE_PACKET == 0 && time % 80 == 0) {
+            Event* nextEvent = eventHandler->nextEvent();
+            if (!nextEvent)
+                eventsDone = true;
+            else {
+                cout << "New event of type " << nextEvent->eventType << endl;
+                switch (nextEvent->eventType) {
+                    case Event::SEND:
+                        packets++;
+                        handleSendEvent(nextEvent, &hosts, protocol, time);
+                        break;
+                    case Event::MOVE:
+                        handleMoveEvent(nextEvent, &hosts);
+                        break;
+                    case Event::JOIN:
+                        handleJoinEvent(nextEvent, &hosts, protocol, statistics, radius, time, id);
+                        id++;
+                        break;
+                    case Event::DISCONNECT:
+                        handleDisconnectEvent(nextEvent, &hosts);
+                        break;
+                }
             
-            if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
+                // packets++;
+                if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
+            }
         }
-        else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) {
+        else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) { // DEBUG
             switch (protocol) {
                 case DSDV:
-                    // sender->receivePacket(new DSDVPacket(sender, receiver));
+                    // sender->receivePacket(new DSDVPacket(sender, receiver, time));
                     break;
                 case DSR: 
-                    sender->receivePacket(new DSRPacket(sender, receiver));
+                    sender->receivePacket(new DSRPacket(sender, receiver, time));
                     break;
                 case GPSR:
-                    sender->receivePacket(new GPSRPacket(sender, receiver));
+                    sender->receivePacket(new GPSRPacket(sender, receiver, time));
                     break;
             }
         }
@@ -162,4 +180,51 @@ int main(int argc, char *argv[])
     cout << statistics->toString() << endl;
 
     return a.exec();
+}
+
+void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int time) {
+    // TODO: consider the size of data, send multiple packets
+
+    Host* h1 = (*hosts)[event->senderId];
+    Host* h2 = (*hosts)[event->receiverId];
+    switch (protocol) {
+        case DSDV:
+            // h1->receivePacket(new DSDVPacket(h1, h2, time));
+            break;
+        case DSR: 
+            h1->receivePacket(new DSRPacket(h1, h2, time));
+            break;
+        case GPSR:
+            h1->receivePacket(new GPSRPacket(h1, h2, time));
+            break;
+    }
+}
+
+void handleMoveEvent(Event* event, vector<Host*>* hosts) {
+    cout << "Out of the way! We are moving!" << endl;
+    Point* p = new Point(event->x, event->y);
+    (*hosts)[event->hostId]->moveTo(p);
+}
+
+void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id) {
+    Host* newHost;
+    int x = event->x;
+    int y = event->y;
+    switch (protocol) {
+        case DSDV:
+            // newHost = new DSDVHost(statistics, x, y, radius, time, id);
+            break;
+        case DSR:
+            newHost = new DSRHost(statistics, x, y, radius, time, id);
+            break;
+        case GPSR:
+            newHost = new GPSRHost(statistics, x, y, radius, time, id);
+            break;
+    }
+    hosts->push_back(newHost);
+    newHost->discoverNeighbours(hosts);
+}
+
+void handleDisconnectEvent(Event* event, vector<Host*>* hosts) {
+    return;
 }

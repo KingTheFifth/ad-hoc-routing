@@ -1,6 +1,8 @@
 #include "routingTable.h"
+#include "DSDVHost.h"
 
-//TODO: Replace all DSDVHosts with DSDVHost
+//TODO: Implement sequence numbers. Look up how sequence numbers work first.
+//Specifically who discovers and broadcasts a broken link and with what sequence number.
 
 DSDVHost* RoutingTable::getNextHop(DSDVHost *destination){
     struct Row* tableEntry = getEntry(destination);
@@ -8,7 +10,7 @@ DSDVHost* RoutingTable::getNextHop(DSDVHost *destination){
     return tableEntry->nextHop;
 }
 
-void RoutingTable::insert(DSDVHost* destination, DSDVHost* nextHop, double cost, pair<DSDVHost*, unsigned> sequenceNumber){
+void RoutingTable::insert(DSDVHost* destination, DSDVHost* nextHop, double cost, pair<DSDVHost*, unsigned> sequenceNumber) {
     Row* row = new Row(destination, nextHop, cost, sequenceNumber);
     entries.push_back(row);
 }
@@ -23,8 +25,7 @@ void RoutingTable::remove(DSDVHost* destination){
 }
 
 void RoutingTable::update(RoutingTable* otherTable){
-    //Every time we get a routing update, we should check if our distance to the neighbour needs updating.
-    vector<Row*> testEntries = otherTable->entries;
+    //Every time we get a routing update, we should check if our distance to that neighbour needs updating.
     Row* neighbour = getEntry(otherTable->getEntries()->front()->destination); //Check if we have neighbour row in our own table, extracting host* from neighbour's table.
     if (neighbour == nullptr){
         DSDVHost* thisHost = entries[0]->destination;
@@ -32,9 +33,9 @@ void RoutingTable::update(RoutingTable* otherTable){
         insert(neighbourHost, neighbourHost, thisHost->distanceTo(neighbourHost), neighbour->sequenceNumber);
     }
     else { //if neighbour not in table, add it.
-        double newCost = entries[0]->destination->distanceTo(otherTable->entries->front()->destination);
+        double newCost = entries[0]->destination->distanceTo(otherTable->entries.front()->destination);
         if (newCost < neighbour->cost){
-            neighbour->cost = newcost;
+            neighbour->cost = newCost;
             neighbour->hasChanged = true;
         }
     }
@@ -43,16 +44,16 @@ void RoutingTable::update(RoutingTable* otherTable){
     while(otherEntry != otherTable->getEntries()->end()){
         for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
             if((*otherEntry)->destination == (*ourEntry)->destination){
-                double routeCost = entries[0]->destination->distanceTo(otherTable->entries->front()->destination) + otherEntry->cost;
-                if (routeCost < ourEntry->cost){
+                double routeCost = entries[0]->destination->distanceTo(otherTable->entries.front()->destination) + (*otherEntry)->cost;
+                if (routeCost < (*ourEntry)->cost){
                     remove((*ourEntry)->destination); //remove our row, then create a new one.
-                    insert((*otherEntry)->destination, otherTable->entries->front()->destination, routeCost, otherEntry.sequenceNumber);
+                    insert((*otherEntry)->destination, otherTable->entries.front()->destination, routeCost, (*otherEntry)->sequenceNumber);
                 }
                 break; //match already found. Continue to next entry
             }
         }
-        double routeCost = entries[0]->destination->distanceTo(otherTable->entries->front()->destination) + otherEntry->cost;
-        insert((*otherEntry)->destination, otherTable->entries->front()->destination, routeCost, otherEntry.sequenceNumber);
+        double routeCost = entries[0]->destination->distanceTo(otherTable->entries.front()->destination) + (*otherEntry)->cost;
+        insert((*otherEntry)->destination, otherTable->entries.front()->destination, routeCost, (*otherEntry)->sequenceNumber);
     }
 }
 
@@ -65,8 +66,8 @@ RoutingTable* RoutingTable::getChanges(){
     RoutingTable* tableChanges = new RoutingTable();
     for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
         if((*entry)->hasChanged){
-            Row* newEntry = new Row(entry);
-            tableChanges->entries->push_back(newEntry);
+            Row* newEntry = new Row(*entry);
+            tableChanges->entries.push_back(newEntry);
         }
     }
     //TODO: Make sure to set row.hasChanged to false after we broadcast a route.

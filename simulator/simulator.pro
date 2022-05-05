@@ -21,12 +21,14 @@ SOURCES += \
     host/GPSRHost.cpp \
     host/DSDVHost.cpp \
     host/DSRHost.cpp \
+    host/routingTable.cpp \
     link.cpp \
     packet/packet.cpp \
     packet/GPSRPacket.cpp \
     packet/DSRPacket.cpp \
     packet/DSDVPacket.cpp \
-    point.cpp
+    point.cpp \
+    events/EventHandler.cpp \
 
 HEADERS += \
     host/host.h \
@@ -34,15 +36,35 @@ HEADERS += \
     host/DSDVHost.h \
     host/DSRHost.h \
     host/DSRRoute.h \
+    host/routingTable.h \
     link.h \
     packet/packet.h \
     packet/GPSRPacket.h \
     packet/DSDVPacket.h \
     packet/DSRPacket.h \
     point.h \
-    StatisticsHandler.h
+    StatisticsHandler.h \
+    events/Event.h \
+    events/EventHandler.h
 
 FORMS +=
+
+unix {
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/events.txt $$OUT_PWD$$escape_expand(\n\t))
+    
+    #QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_dense $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/large_sparse $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/large_dense $$OUT_PWD$$escape_expand(\n\t))
+}
+win32 {
+    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\events\events.txt $$OUT_PWD$$escape_expand(\n\t))
+    
+    #QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\small_dense.txt $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\large_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\large_dense.txt $$OUT_PWD$$escape_expand(\n\t))
+}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
