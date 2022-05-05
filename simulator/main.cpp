@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFilename = "large_sparse.txt";
+    string topologyFilename = "small_sparse.txt";
     string eventsFilename = "events.txt";
     ifstream input;
     input.open(topologyFilename);

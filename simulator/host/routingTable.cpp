@@ -1,5 +1,6 @@
 #include "routingTable.h"
 #include "DSDVHost.h"
+#include <iostream>
 
 //TODO: Implement sequence numbers. Look up how sequence numbers work first.
 //Specifically who discovers and broadcasts a broken link and with what sequence number.
@@ -31,7 +32,8 @@ void RoutingTable::update(RoutingTable* otherTable){
 
     bool neighbourChanged = false;
     Row* neighbourEntry = getEntry(neighbourHost);
-    if(!neighbourEntry) {
+
+    if(!neighbourEntry) { //This section of code works as intended.
         insert(neighbourHost, neighbourHost, thisHost->distanceTo(neighbourHost), otherTable->entries[0]->sequenceNumber);
         neighbourChanged = true;
     }
@@ -40,23 +42,33 @@ void RoutingTable::update(RoutingTable* otherTable){
     }
 
     for(vector<Row*>::iterator otherEntry = otherTable->entries.begin(); otherEntry != otherTable->entries.end(); otherEntry++){
+        bool entryFound = false;
         for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
             if((*otherEntry)->destination == (*ourEntry)->destination){ //found a matching destination
+                entryFound = true;
                 if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour needs updating regardless
-                        updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
-                        break; //Only matching entry found. proceed to next.
-                }
+                    updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
+                    break; //Only matching entry found. proceed to next.
+                } //Code until here works as intended
                 if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
+                    cout << "other sequence higher" << endl;
                     if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
+                        cout << "other route is cheaper" << endl;
                         ourEntry = entries.erase(ourEntry) - 1;
                         Row* newRow = new Row((*otherEntry)); //Copy their row
                         newRow->nextHop = neighbourHost; //Update nextHop to neighbour
                         newRow->cost += thisHost->distanceTo(neighbourHost); //Update proper cost (distance)
                         entries.push_back(newRow);
+                        break;
                     }
                 }
                 break; //match found and acton taken. Proceed to next entry.
             }
+        }
+        //Why do we keep finding new entries? :(
+        if (!entryFound) {
+            cout << "new entry" << endl;
+            insert((*otherEntry)->destination, neighbourHost, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost), (*otherEntry)->sequenceNumber);
         }
     }
 }

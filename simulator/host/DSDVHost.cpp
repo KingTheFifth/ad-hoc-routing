@@ -2,6 +2,7 @@
 #include "link.h"
 #include "routingTable.h"
 #include "packet/DSDVPacket.h"
+#include <iostream>
 
 DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
             : Host(_statistics, _x, _y, _radius, _time, _id) {
@@ -15,7 +16,9 @@ void DSDVHost::processPacket(Packet* packet) {
     if (type == DSDVPacket::BROADCAST){ //We received a broadcasted routing table. Update ours
         routingTable->update(dsdvPacket->routingTable);
         RoutingTable* ourChanges = routingTable->getChanges();
-        broadcastTable(ourChanges);
+        if (ourChanges->entries.size() > 1){
+            broadcastTable(ourChanges);
+        }
     }
     else { //Normal data packet.
         const DSDVHost* dest = (DSDVHost*)(dsdvPacket->destination);
