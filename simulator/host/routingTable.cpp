@@ -25,35 +25,28 @@ void RoutingTable::remove(DSDVHost* destination){
 }
 
 void RoutingTable::update(RoutingTable* otherTable){
-    //Every time we get a routing update, we should check if our distance to that neighbour needs updating.
-    Row* neighbour = getEntry(otherTable->getEntries()->front()->destination); //Check if we have neighbour row in our own table, extracting host* from neighbour's table.
-    if (neighbour == nullptr){
-        DSDVHost* thisHost = entries[0]->destination;
-        DSDVHost* neighbourHost = neighbour->destination;
-        insert(neighbourHost, neighbourHost, thisHost->distanceTo(neighbourHost), neighbour->sequenceNumber);
-    }
-    else { //if neighbour not in table, add it.
-        double newCost = entries[0]->destination->distanceTo(otherTable->entries.front()->destination);
-        if (newCost < neighbour->cost){
-            neighbour->cost = newCost;
-            neighbour->hasChanged = true;
-        }
-    }
-    vector<Row*>::iterator otherEntry = otherTable->getEntries()->begin(); //Iterate through every entry in received table
-    if(otherEntry != otherTable->getEntries()->end()){ otherEntry++; } //We want to skip neighbour. If list was empty, we need the if-statement to stay within bounds.
-    while(otherEntry != otherTable->getEntries()->end()){
+    DSDVHost* neighbourHost = otherTable->entries.front()->destination;
+    DSDVHost* thisHost = entries[0]->destination;
+    bool neighbourChanged = (otherTable->entries.front()->sequenceNumber.second > getEntry(neighbourHost)->sequenceNumber.second);
+    for(vector<Row*>::iterator otherEntry = otherTable->entries.begin(); otherEntry != otherTable->entries.end(); otherEntry++){
         for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
-            if((*otherEntry)->destination == (*ourEntry)->destination){
-                double routeCost = entries[0]->destination->distanceTo(otherTable->entries.front()->destination) + (*otherEntry)->cost;
-                if (routeCost < (*ourEntry)->cost){
-                    remove((*ourEntry)->destination); //remove our row, then create a new one.
-                    insert((*otherEntry)->destination, otherTable->entries.front()->destination, routeCost, (*otherEntry)->sequenceNumber);
+            if((*otherEntry)->destination == (*ourEntry)->destination){ //found a matching destination
+                if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour needs updating regardless
+                        updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
+                        break; //Only matching entry found. proceed to next.
                 }
-                break; //match already found. Continue to next entry
+                if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
+                    if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
+                        ourEntry = entries.erase(ourEntry) - 1;
+                        Row* newRow = new Row((*otherEntry)); //Copy their row
+                        newRow->nextHop = neighbourHost; //Update nextHop to neighbour
+                        newRow->cost += thisHost->distanceTo(neighbourHost); //Update proper cost (distance)
+                        entries.push_back(newRow);
+                    }
+                }
+                break; //match found and acton taken. Proceed to next entry.
             }
         }
-        double routeCost = entries[0]->destination->distanceTo(otherTable->entries.front()->destination) + (*otherEntry)->cost;
-        insert((*otherEntry)->destination, otherTable->entries.front()->destination, routeCost, (*otherEntry)->sequenceNumber);
     }
 }
 
