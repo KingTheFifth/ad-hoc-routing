@@ -15,9 +15,10 @@ void DSDVHost::processPacket(Packet* packet) {
     DSDVPacket::PacketType type = dsdvPacket->packetType;
     if (type == DSDVPacket::BROADCAST){ //We received a broadcasted routing table. Update ours
         routingTable->update(dsdvPacket->routingTable);
-        RoutingTable* ourChanges = routingTable->getChanges();
-        if (ourChanges->entries.size() > 1){
-            broadcastTable(ourChanges);
+        int numberOfChanges = routingTable->getNumberOfChanges();
+        //cout << numberOfChanges << endl;
+        if (routingTable->entries[0]->hasChanged == true || numberOfChanges > 1){
+            awaitingBroadcast = true;
         }
     }
     else { //Normal data packet.
@@ -38,5 +39,24 @@ void DSDVHost::broadcastTable(RoutingTable* table) {
     broadcast->source = this;
     for(vector<Link*>::iterator neighbour = neighbours.begin(); neighbour != neighbours.end(); neighbour++){
         forwardPacket(broadcast->copy(), *neighbour);
+    }
+}
+
+void DSDVHost::broadcastChanges(){
+    RoutingTable* ourChanges = routingTable->getChanges();
+    broadcastTable(ourChanges);
+
+}
+
+bool DSDVHost::ShouldBroadcast(int currTime){
+    return (currTime - lastBroadcast > BROADCASTDELAY && awaitingBroadcast);
+}
+
+void DSDVHost::tick(int currTime){
+    Host::tick(currTime);
+    if(ShouldBroadcast(currTime)){
+        broadcastChanges();
+        lastBroadcast = currTime;
+        awaitingBroadcast = false;
     }
 }

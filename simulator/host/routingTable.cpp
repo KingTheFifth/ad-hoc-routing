@@ -79,8 +79,11 @@ void RoutingTable::updateCost(Row* row, double cost){
 }
 
 RoutingTable* RoutingTable::getChanges(){
-    entries[0]->hasChanged = true;
     RoutingTable* tableChanges = new RoutingTable();
+    if(entries[0]->hasChanged == false){ //We have to add first element to table of changes, regardless of whether it has changed or not.
+        Row* newEntry = new Row(entries[0]);
+        tableChanges->entries.push_back(newEntry);
+    }
     for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
         if((*entry)->hasChanged){
             Row* newEntry = new Row(*entry);
@@ -90,6 +93,16 @@ RoutingTable* RoutingTable::getChanges(){
     }
     return tableChanges;
     //TODO: create new table from all changed entries.
+}
+
+int RoutingTable::getNumberOfChanges(){
+    int count = 0;
+    for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
+        if((*entry)->hasChanged){
+            count +=1;
+        }
+    }
+    return count;
 }
 
 Row* RoutingTable::getEntry(const DSDVHost* host){

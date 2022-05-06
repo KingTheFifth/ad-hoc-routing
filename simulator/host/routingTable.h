@@ -35,6 +35,7 @@ class RoutingTable {
         void update(RoutingTable* otherTable); //updates local routing table from other table
         void updateCost(Row* row, double cost);
         RoutingTable* getChanges();
+        int getNumberOfChanges();
         vector<Row*>* getEntries();
         vector<Row*> entries;
     private:

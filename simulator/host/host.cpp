@@ -49,7 +49,6 @@ void Host::draw(QGraphicsScene *scene) const {
 void Host::tick(int currTime) {
     int timeDelta = currTime - time;
     time = currTime;
-    
     // --- debug --- 
     //if (perimDrawCountdown > 0) perimDrawCountdown--;
     // -------------

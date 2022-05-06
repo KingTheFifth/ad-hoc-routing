@@ -5,6 +5,7 @@
 // #include "routingTable.h"
 #include "packet/DSDVPacket.h"
 #include <utility>
+#define BROADCASTDELAY 500
 
 class RoutingTable;
 
@@ -19,6 +20,11 @@ class DSDVHost : public Host {
     protected:
         void processPacket(Packet* packet);
     private:
+        int lastBroadcast = -BROADCASTDELAY;
+        bool awaitingBroadcast = true;
+        void broadcastChanges();
+        bool ShouldBroadcast(int currTime);
+        void tick(int currTime);
 
 
         /**
