@@ -60,14 +60,14 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
 
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        getPerimeterLinks(&perimeterLinks); // debug
+        //getPerimeterLinks(&perimeterLinks); // debug
         nextHopLink = getRHREdge(destination, &perimeter);
         packet->firstEdgeInPerim = make_pair(this, nextHopLink->getOtherHost(this));
     }
     else if (packet->mode == GPSRPacket::Perimeter) {
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        getPerimeterLinks(&perimeterLinks); // debug
+        //getPerimeterLinks(&perimeterLinks); // debug
         Link* RHREdge = getRHREdge(previous, &perimeter);
         
         // Drop packet if host is isolated
