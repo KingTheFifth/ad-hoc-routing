@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
         if (ONLY_ONE_PACKET == 0 && time % 80 == 0) {
             Event* nextEvent = eventHandler->nextEvent();
-            if (protocol == Protocol::DSDV) nextEvent = nullptr; // debug
+            //if (protocol == Protocol::DSDV) nextEvent = nullptr; // debug
             if (!nextEvent) {
                 eventsDone = true;
             }
@@ -245,5 +245,6 @@ void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, Stat
 }
 
 void handleDisconnectEvent(Event* event, vector<Host*>* hosts) {
+    // TODO: Do something, lol
     return;
 }

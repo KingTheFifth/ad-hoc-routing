@@ -122,6 +122,7 @@ void Host::receivePacket(Packet* packet) {
         // Drop packet
         delete packet;
     } else {
+
         receivingBuffer.push(packet);
     }
 }

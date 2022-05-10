@@ -33,7 +33,7 @@ void RoutingTable::update(RoutingTable* otherTable){
     bool neighbourChanged = false;
     Row* neighbourEntry = getEntry(neighbourHost);
 
-    if(!neighbourEntry) { //This section of code works as intended.
+    if(!neighbourEntry) {
         insert(neighbourHost, neighbourHost, thisHost->distanceTo(neighbourHost), otherTable->entries[0]->sequenceNumber);
         neighbourChanged = true;
     }
@@ -49,11 +49,11 @@ void RoutingTable::update(RoutingTable* otherTable){
                 if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour needs updating regardless
                     updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
                     break; //Only matching entry found. proceed to next.
-                } //Code until here works as intended
+                }
                 if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
-                    cout << "other sequence higher" << endl;
+                    //cout << "other sequence higher" << endl;
                     if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
-                        cout << "other route is cheaper" << endl;
+                        //cout << "other route is cheaper" << endl;
                         ourEntry = entries.erase(ourEntry) - 1;
                         Row* newRow = new Row((*otherEntry)); //Copy their row
                         newRow->nextHop = neighbourHost; //Update nextHop to neighbour
@@ -65,9 +65,7 @@ void RoutingTable::update(RoutingTable* otherTable){
                 break; //match found and acton taken. Proceed to next entry.
             }
         }
-        //Why do we keep finding new entries? :(
         if (!entryFound) {
-            cout << "new entry" << endl;
             insert((*otherEntry)->destination, neighbourHost, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost), (*otherEntry)->sequenceNumber);
         }
     }
