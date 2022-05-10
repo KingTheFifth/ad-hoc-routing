@@ -31,6 +31,8 @@ struct GPSRHost : public Host {
          * 
          */
         Link* getRHREdge(const Point* referencePoint, vector<Link*>* perimeterLinks) const;
+
+        void dropReceivedPacket(Packet* packet);
 };
 
 #endif

@@ -16,6 +16,8 @@ struct DSRHost : public Host {
 
     protected:
         void processPacket(Packet* packet);
+
+        void dropReceivedPacket(Packet* packet);
     private:
         unsigned requestIDCounter;
         vector<DSRRoute*> routes;

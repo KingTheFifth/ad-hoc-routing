@@ -142,3 +142,8 @@ void GPSRHost::getPerimeterLinks(vector<Link*>* result) {
         l1++;
     }
 }
+
+void GPSRHost::dropReceivedPacket(Packet* packet) {
+    statistics->dropDataPacket();
+    delete packet;
+}

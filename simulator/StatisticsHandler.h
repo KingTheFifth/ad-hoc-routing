@@ -11,6 +11,7 @@ struct StatisticsHandler {
     unsigned dataPacketsSent;
     unsigned dataPacketsArrived;
     unsigned routingPacketsSent; // Will be 0 for GPSR
+    unsigned dataPacketsDropped;
     unsigned avgDelay;
     double avgThroughput;
 
@@ -37,6 +38,10 @@ struct StatisticsHandler {
     void addRoutingPackets(int amount) {
         packetsSent += amount;
         routingPacketsSent += amount;
+    }
+
+    void dropDataPacket() {
+        dataPacketsDropped++;
     }
 };
 

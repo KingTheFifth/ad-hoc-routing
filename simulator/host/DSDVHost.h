@@ -32,6 +32,8 @@ class DSDVHost : public Host {
          * 
          */
         Link* DSDV(DSDVPacket* packet);
+
+        void dropReceivedPacket(Packet* packet);
 };
 
 #endif

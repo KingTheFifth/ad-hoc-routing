@@ -1,6 +1,7 @@
 #ifndef EVENT_HANDLER_H
 #define EVENT_HANDLER_H
 
+#include "constants.h"
 #include "Event.h"
 #include <queue>
 #include <string>

@@ -103,6 +103,8 @@ class Host {
         virtual void processPacket(Packet* packet) = 0;
 
         Link* getLinkToHost(const Host* target);
+
+        virtual void dropReceivedPacket(Packet* packet) = 0;
 };
 
 #endif

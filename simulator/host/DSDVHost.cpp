@@ -38,6 +38,7 @@ void DSDVHost::processPacket(Packet* packet) {
         else {
             //DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
             delete dsdvPacket;
+            statistics->dropDataPacket();
         }
     }
 }
@@ -78,4 +79,12 @@ void DSDVHost::tick(int currTime){
         lastBroadcast = currTime;
         awaitingBroadcast = false;
     }
+}
+
+void DSDVHost::dropReceivedPacket(Packet* packet) {
+    DSDVPacket* dsdvPacket = dynamic_cast<DSDVPacket*>(packet);
+    if (dsdvPacket->packetType == DSDVPacket::PacketType::OTHER) {
+        statistics->dropDataPacket();
+    }
+    delete dsdvPacket;
 }

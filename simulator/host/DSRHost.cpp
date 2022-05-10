@@ -178,3 +178,12 @@ bool DSRHost::shouldBeDropped(const DSRPacket* packet) {
     if(packet->route.hasTarget(this)) return true;
     return false;
 }
+
+
+void DSRHost::dropReceivedPacket(Packet* packet) {
+    DSRPacket* dsrPacket = dynamic_cast<DSRPacket*>(packet);
+    if (dsrPacket->packetType == DSRPacket::PacketType::OTHER) {
+        statistics->dropDataPacket();
+    }
+    delete packet;
+}

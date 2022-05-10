@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFilename = "presentation.txt";
-    string eventsFilename = "pres_events.txt";
+    string topologyFilename = "large_sparse.txt";
+    string eventsFilename = "events.txt";
     ifstream input;
     input.open(topologyFilename);
     
@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
 
     eventHandler->loadEvents(eventsFilename);
 
+    
     while(input >> x >> y) {
         Host* host;
         switch (protocol) {
@@ -88,6 +89,7 @@ int main(int argc, char *argv[])
         hosts.push_back(host);
         id++;
     }
+    
     input.close();
     
     // let all hosts find their neighbours
@@ -109,6 +111,8 @@ int main(int argc, char *argv[])
     int packets = 0;
     int timeDelta;
     int decay = radius * 2;
+    int overtime = 0;
+    int eventDuration = EVENT_DURATION_DEFAULT; // do something here
 
     Host* sender;
     Host* receiver;
@@ -116,31 +120,36 @@ int main(int argc, char *argv[])
         sender = hosts[2];
         receiver = hosts[8];
     }
-    while (decay > 0) { // Simulation is running
+
+    bool running = true;
+    while (running) { // Simulation is running
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
 
-        if (eventsDone) {
-            decay -= TICK_STEP;
-            for (auto& host : hosts) {
-                if (!(host->isIdle())) {
-                    decay = radius * 2;
-                    break;
-                } 
-            }
+        if (eventsDone && statistics->dataPacketsSent == statistics->dataPacketsArrived + statistics->dataPacketsDropped) {
+            running = false;
+            
+            // cout << "Going into overtime!" << endl;
+            // overtime += TICK_STEP;
+            // decay -= TICK_STEP;
+            // for (auto& host : hosts) {
+            //     if (!(host->isIdle())) {
+            //         decay = radius * 2;
+            //         break;
+            //     } 
+            // }
         }
 
         for (auto& host : hosts) host->tick(time);
 
-        //if (eventsDone) quitDelay -= TICK_STEP;
-        // if (quitDelay <= 0) break;
+        eventDuration -= TICK_STEP;
 
-        if (ONLY_ONE_PACKET == 0 && time % 80 == 0) {
+
+        if (ONLY_ONE_PACKET == 0 && eventDuration <= 0) {
             Event* nextEvent = eventHandler->nextEvent();
-            //if (protocol == Protocol::DSDV) nextEvent = nullptr; // debug
             if (!nextEvent) {
                 eventsDone = true;
-            }
-            else {
+            } else {
+                eventDuration = nextEvent->duration;
                 switch (nextEvent->eventType) {
                     case Event::SEND:
                         packets++;
@@ -150,7 +159,7 @@ int main(int argc, char *argv[])
                         handleSendEvent(nextEvent, &hosts, protocol, time);
                         break;
                     case Event::MOVE:
-                        handleMoveEvent(nextEvent, &hosts);
+                        //handleMoveEvent(nextEvent, &hosts);
                         break;
                     case Event::JOIN:
                         handleJoinEvent(nextEvent, &hosts, protocol, statistics, radius, time, id);
