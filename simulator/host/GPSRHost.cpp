@@ -10,11 +10,7 @@ void GPSRHost::processPacket(Packet* packet) {
     GPSRPacket* gpsrPacket = (GPSRPacket*) packet;
     if (location->distanceTo(gpsrPacket->destPos) < CLOSE_THRESHOLD) {
         int delay = time - gpsrPacket->timeSent;
-        unsigned prevDelaySum = statistics->avgDelay * statistics->dataPacketsArrived;
-        double prevThroughputSum = statistics->avgThroughput * statistics->dataPacketsArrived;
-        statistics->dataPacketsArrived++;
-        statistics->avgDelay = (double) (prevDelaySum + delay) / (double) statistics->dataPacketsArrived;
-        statistics->avgThroughput = (prevThroughputSum + 1.0 / (double) delay) / (double) statistics->dataPacketsArrived;
+        statistics->addPacketArrival(delay);
         delete gpsrPacket;
     }
     else {

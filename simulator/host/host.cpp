@@ -49,7 +49,6 @@ void Host::draw(QGraphicsScene *scene) const {
 void Host::tick(int currTime) {
     int timeDelta = currTime - time;
     time = currTime;
-    
     // --- debug --- 
     //if (perimDrawCountdown > 0) perimDrawCountdown--;
     // -------------
@@ -123,6 +122,7 @@ void Host::receivePacket(Packet* packet) {
         // Drop packet
         delete packet;
     } else {
+
         receivingBuffer.push(packet);
     }
 }

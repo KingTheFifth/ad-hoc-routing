@@ -20,8 +20,7 @@ Link* DSRHost::DSR(DSRPacket* packet) {
     RREQ->route.addNode(this);
 
     broadcast(RREQ);
-    statistics->packetsSent += neighbours.size();
-    statistics->routingPacketsSent += neighbours.size();
+    statistics->addRoutingPackets(neighbours.size());
     delete RREQ;
     return nullptr;
 }
@@ -56,8 +55,7 @@ void DSRHost::processPacket(Packet* packet) {
 
             Link* nextHop = getLinkToHost(RREP->route.getNextHop(this, true));
             forwardPacket(RREP, nextHop);
-            statistics->packetsSent++;
-            statistics->routingPacketsSent++;
+            statistics->addRoutingPackets(1);
         }
         else { // Not yet arrived
             DSRRoute* cachedRoute = getCachedRoute(dsrPacket->destination);
@@ -73,8 +71,9 @@ void DSRHost::processPacket(Packet* packet) {
                 Link* nextHop = getLinkToHost(RREP->route.getNextHop(this, true));
                 forwardPacket(RREP, nextHop);
 
-                statistics->packetsSent++;
-                statistics->routingPacketsSent++;
+                statistics->addRoutingPackets(1);
+                //statistics->packetsSent++;
+                //statistics->routingPacketsSent++;
             }
             else { // No cached route to destination from this host
                 dsrPacket->route.addNode(this);
@@ -82,8 +81,9 @@ void DSRHost::processPacket(Packet* packet) {
                     DSRRoute* reversedRouteCopy = new DSRRoute(dsrPacket->route, true);
                     routes.push_back(reversedRouteCopy);
                 }
-                statistics->packetsSent += neighbours.size();
-                statistics->routingPacketsSent += neighbours.size();
+                statistics->addRoutingPackets(neighbours.size());
+                //statistics->packetsSent += neighbours.size();
+                //statistics->routingPacketsSent += neighbours.size();
                 broadcast(dsrPacket);
             }
 
@@ -123,11 +123,7 @@ void DSRHost::processPacket(Packet* packet) {
     else { // Other packets
         if (dsrPacket->destination == this) { // Arrived at destination
             int delay = time - dsrPacket->timeSent;
-            unsigned prevDelaySum = statistics->avgDelay * statistics->dataPacketsArrived;
-            double prevThroughputSum = statistics->avgThroughput * statistics->dataPacketsArrived;
-            statistics->dataPacketsArrived++;
-            statistics->avgDelay = (double) (prevDelaySum + delay) / (double) statistics->dataPacketsArrived;
-            statistics->avgThroughput = (prevThroughputSum + 1.0 / (double) delay) / (double) statistics->dataPacketsArrived;
+            statistics->addPacketArrival(delay);
             delete dsrPacket;
         }
         else { // Not yet at destination
@@ -137,9 +133,7 @@ void DSRHost::processPacket(Packet* packet) {
             }
             else { // No route to follow, send the packet normally
                 Link* l = DSR(dsrPacket);
-                if (l) {                   
-                    // statistics->packetsSent++;
-                    // statistics->dataPacketsSent++;
+                if (l) {
                     forwardPacket(dsrPacket, l);
                 }
             }

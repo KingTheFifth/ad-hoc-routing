@@ -13,6 +13,8 @@
 #define HOST_PROCESSING_DELAY 1 // measurements done at 60
 
 #define HOST_MOBILITY 0
+#define BROADCASTDELAY 500 //TODO: Try out different delays and their effects on throughput
+#define FULLBROADCASTDELAY 2000 //TODO: Try out different delays and their effects on throughput
 
 
 // DEBUG

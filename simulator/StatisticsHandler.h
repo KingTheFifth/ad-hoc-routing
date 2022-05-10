@@ -25,6 +25,19 @@ struct StatisticsHandler {
         string << "Average throughput: " << fixed << setprecision(10) << avgThroughput << "\n";
         return string.str();
     }
+
+    void addPacketArrival(int delay) {
+        unsigned prevDelaySum = avgDelay * dataPacketsArrived;
+        double prevThroughputSum = avgThroughput * dataPacketsArrived;
+        dataPacketsArrived++;
+        avgDelay = (double) (prevDelaySum + delay) / (double) dataPacketsArrived;
+        avgThroughput = (prevThroughputSum + 1.0 / (double) delay) / (double) dataPacketsArrived;
+    }
+
+    void addRoutingPackets(int amount) {
+        packetsSent += amount;
+        routingPacketsSent += amount;
+    }
 };
 
 

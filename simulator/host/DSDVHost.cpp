@@ -13,30 +13,69 @@ DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _ra
 void DSDVHost::processPacket(Packet* packet) {
     DSDVPacket* dsdvPacket = (DSDVPacket*) packet;
     DSDVPacket::PacketType type = dsdvPacket->packetType;
-    if (type == DSDVPacket::BROADCAST){ //We received a broadcasted routing table. Update ours
+    if (type == DSDVPacket::BROADCAST) { //We received a broadcasted routing table. Update ours
         routingTable->update(dsdvPacket->routingTable);
-        RoutingTable* ourChanges = routingTable->getChanges();
-        if (ourChanges->entries.size() > 1){
-            broadcastTable(ourChanges);
+        int numberOfChanges = routingTable->getNumberOfChanges();
+
+        if (routingTable->entries[0]->hasChanged == true || numberOfChanges > 1){
+            awaitingBroadcast = true;
         }
     }
     else { //Normal data packet.
         const DSDVHost* dest = (DSDVHost*)(dsdvPacket->destination);
+        if (dest == this) {
+            int delay = time - dsdvPacket->timeSent;
+            statistics->addPacketArrival(delay);
+            delete dsdvPacket;
+            return;
+        }
+
         DSDVHost* nextHop = routingTable->getNextHop(dest);
         if(nextHop != nullptr){ //Destination found in table
-            Link* link = getLinkToHost((Host*)nextHop);
-            transmitBuffer.push(make_pair(dsdvPacket, link));
+            Link* link = getLinkToHost(nextHop);
+            forwardPacket(dsdvPacket, link);
         }
-        //DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
+        else {
+            //DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
+            delete dsdvPacket;
+        }
     }
 }
 
 void DSDVHost::broadcastTable(RoutingTable* table) {
-    DSDVPacket* broadcast = new DSDVPacket(this, nullptr, time); //create packet of BROADCAST type with pointer to table
-    broadcast->packetType = DSDVPacket::BROADCAST;
-    broadcast->routingTable = table;
-    broadcast->source = this;
-    for(vector<Link*>::iterator neighbour = neighbours.begin(); neighbour != neighbours.end(); neighbour++){
-        forwardPacket(broadcast->copy(), *neighbour);
+    DSDVPacket* broadcastPacket = new DSDVPacket(this, nullptr, time); //create packet of BROADCAST type with pointer to table
+    broadcastPacket->packetType = DSDVPacket::BROADCAST;
+    broadcastPacket->routingTable = table;
+    broadcastPacket->source = this;
+    broadcast(broadcastPacket);
+    statistics->addRoutingPackets(neighbours.size());
+}
+
+void DSDVHost::broadcastChanges(){
+    RoutingTable* ourChanges = routingTable->getChanges();
+    broadcastTable(ourChanges);
+}
+
+
+bool DSDVHost::shouldBroadcast(int currTime){
+    bool partialBroadcast = currTime - lastBroadcast > BROADCASTDELAY && awaitingBroadcast;
+    bool fullBroadcast = currTime - lastFullBroadcast > FULLBROADCASTDELAY;
+    return partialBroadcast || fullBroadcast;
+}
+
+
+void DSDVHost::tick(int currTime){
+    Host::tick(currTime);
+    if(shouldBroadcast(currTime)){
+        if(currTime - lastFullBroadcast > FULLBROADCASTDELAY) {
+            routingTable->entries[0]->sequenceNumber.second += 2;
+            broadcastTable(routingTable);
+            lastFullBroadcast = currTime;
+        }
+        else {
+            broadcastChanges();
+        }
+        lastBroadcast = currTime;
+        awaitingBroadcast = false;
     }
 }

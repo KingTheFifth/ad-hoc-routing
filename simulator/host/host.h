@@ -55,7 +55,7 @@ class Host {
         /**
          * 
          */
-        void tick(int currTime);
+        virtual void tick(int currTime);
 
         /**
          * Given a packet and a link begins transmitting the packet over the link. The actual sending of the packet 
