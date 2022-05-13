@@ -12,27 +12,36 @@ struct GPSRHost : public Host {
         ~GPSRHost() = default;
 
     protected:
-        void processPacket(Packet* packet) override;
-        // void tick(int currTime) override;
-    private:
-        // vector<Link*> perimeterLinks;
-
         /**
          * 
+         */
+        void processPacket(Packet* packet) override;
+
+    private:
+
+        /**
+         * Run the GPSR algorithm and return the link for the packet to route across
          */
         Link* GPSR(GPSRPacket* packet);
 
         /**
-         * 
+         * Get the perimeter links for this host according to the Relative Neighbourhood Graph algorithm
          */
         void getPerimeterLinks(vector<Link*>* result);
 
         /**
-         * 
+         * Return the link that is the Right Hand Rule edge
          */
         Link* getRHREdge(const Point* referencePoint, vector<Link*>* perimeterLinks) const;
 
+        /**
+         * Drop 'packet'
+         */
         void dropReceivedPacket(Packet* packet);
+
+        void countPacketDrop(Packet* packet);
+
+        void deleteRoutes(Host* destination);
 };
 
 #endif

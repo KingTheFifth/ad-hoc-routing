@@ -19,6 +19,8 @@ struct PacketOnLink {
 
 class Link {
     public:
+        bool isBroken;
+
         Link(Host *hostA, Host *hostB, int currTime);
         /**
          * Draws this link as a line between the two hosts of the link.
@@ -30,9 +32,16 @@ class Link {
         void drawAsPerimeter(QGraphicsScene *scene);
 
         /**
-         * 
+         * Get the opposing host of 'currentHost' on this link
          */
         Host* getOtherHost(const Host *currentHost);
+
+        /**
+         * Get the length of this link
+         */
+        double getLength();
+
+        void getPackets(vector<Packet*>* resultVector);
 
         /**
          * Puts given packet into the link's buffer while in transit
@@ -40,7 +49,7 @@ class Link {
         void forwardPacket(Packet *packet);
 
         /**
-         * 
+         * Tick the simulation forward one step on this link
          */
         void tick(int currTime);
 

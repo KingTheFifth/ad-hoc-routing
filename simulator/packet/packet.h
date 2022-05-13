@@ -27,7 +27,14 @@ class Packet {
         int size = PACKET_SIZE;
         int timeSent;
 
+        /**
+         * Copy 'other' and set other's values to this packet's values
+         */
         virtual void copyOther(const Packet& other);
+
+        /** 
+         * Make a copy of this packet
+         */
         virtual Packet* copy() = 0;
 
     private:

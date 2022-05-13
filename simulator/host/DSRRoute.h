@@ -23,6 +23,10 @@ struct DSRRoute {
         return route.empty();
     }
 
+    void empty() {
+        route.clear();
+    }
+
     // Adds a node to the end of the route
     void addNode(const Host* node) {
         route.push_back(node);

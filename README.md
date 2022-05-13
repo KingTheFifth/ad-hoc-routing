@@ -36,6 +36,7 @@ Implemented Features:
 - Unique host ID (incremental?)
 
 Feature Backlog:
+- Fix time units. What is a time unit? What is time? What is life? What is? What? W?
 - Packet sizes
 - Destructors
 - Deallocate allocated memory where needed (link gets broken, end of simulation) => NO MEMORY LEAKS >:(

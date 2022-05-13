@@ -1,18 +1,41 @@
 #include "DSRHost.h"
 #include "link.h"
 
-// will this ever return nullptr?
+void DSRHost::tick(int currTime) {
+    int timeDelta = currTime - time;
+    Host::tick(currTime);
+    
+    if (timeDelta > 0) {
+        for (vector<pair<DSRPacket*, int>>::iterator it = waitingForRouteBuffer.begin(); it != waitingForRouteBuffer.end(); it++) {
+            it->second -= timeDelta;
+
+            if (it->second <= 0) {
+                it->first->retryCount++;
+                if (receivingBuffer.size()*PACKET_SIZE >= HOST_BUFFER_SIZE) {
+                    it->second = DSR_TIMEOUT / 2;
+                } else {
+                    receivePacket(it->first);
+                    it = waitingForRouteBuffer.erase(it) - 1;
+                }
+            }
+
+            else if (it->first->retryCount >= MAX_RETRY_COUNT) {
+                DSRPacket* p = it->first;
+                it = waitingForRouteBuffer.erase(it) - 1;
+                dropReceivedPacket(p);
+            }
+        }
+    }
+}
+
 Link* DSRHost::DSR(DSRPacket* packet) {
     DSRRoute* cachedRoute = getCachedRoute(packet->destination);
     if (cachedRoute) {
         packet->route = *cachedRoute;
         return getLinkToHost(cachedRoute->getNextHop(this, false));
     }
-    
-    // if no
-        // add packet to DSR specific to-be-sent-buffer
-        // send RREQ packet to all neighbours and return nullptr
-    waitingForRouteBuffer.push_back(packet);
+
+    waitingForRouteBuffer.push_back(make_pair(packet, DSR_TIMEOUT));
 
     DSRPacket* RREQ = new DSRPacket(this, packet->destination, time);
     RREQ->packetType = DSRPacket::RREQ;
@@ -93,11 +116,11 @@ void DSRHost::processPacket(Packet* packet) {
 
     else if (dsrPacket->packetType == DSRPacket::RREP) { // RREP packets
         if (dsrPacket->destination == this) { // Arrived at destination
-            for (vector<DSRPacket*>::iterator it = waitingForRouteBuffer.begin(); it != waitingForRouteBuffer.end(); it++) {
-                if ((*it)->destination == dsrPacket->source) { // If 'it' is the packet we have been waiting to send
-                    (*it)->route = dsrPacket->route;
-                    Link* nextHop = getLinkToHost((*it)->route.getNextHop(this, false));
-                    forwardPacket((*it), nextHop);
+            for (vector<pair<DSRPacket*, int>>::iterator it = waitingForRouteBuffer.begin(); it != waitingForRouteBuffer.end(); it++) {
+                if (it->first->destination == dsrPacket->source) { // If 'it' is the packet we have been waiting to send
+                    it->first->route = dsrPacket->route;
+                    Link* nextHop = getLinkToHost(it->first->route.getNextHop(this, false));
+                    forwardPacket(it->first, nextHop);
                     waitingForRouteBuffer.erase(it);
                     routes.push_back(new DSRRoute(dsrPacket->route));
 
@@ -120,6 +143,23 @@ void DSRHost::processPacket(Packet* packet) {
         }
     }
 
+    else if (dsrPacket->packetType == DSRPacket::RERR) { // RERR packets
+        if (dsrPacket->destination == this) {
+            // re-transmit?
+            // Delete cached route to dsrPacket->errorDestination (trim from source of packet to errorDestination)
+            dsrPacket->packetType = DSRPacket::OTHER;
+            dsrPacket->source = this;
+            dsrPacket->destination = dsrPacket->errorDestination;
+            dsrPacket->route.empty();
+            receivePacket(dsrPacket);
+        }
+        else {
+            // TODO: Optimise by trimming cached route to packet's source
+            Link* nextHop = getLinkToHost(dsrPacket->route.getNextHop(this, true));
+            forwardPacket(dsrPacket, nextHop);
+        }
+    }
+
     else { // Other packets
         if (dsrPacket->destination == this) { // Arrived at destination
             int delay = time - dsrPacket->timeSent;
@@ -128,8 +168,10 @@ void DSRHost::processPacket(Packet* packet) {
         }
         else { // Not yet at destination
             if (!dsrPacket->route.isEmpty()) { // If the packet already has a route to follow
+                // TODO: If link does not exist, send RERR back to source
                 Link* nextHop = getLinkToHost(dsrPacket->route.getNextHop(this, false));
-                forwardPacket(dsrPacket, nextHop);
+                if (!nextHop) sendRERR(dsrPacket);
+                else forwardPacket(dsrPacket, nextHop);
             }
             else { // No route to follow, send the packet normally
                 Link* l = DSR(dsrPacket);
@@ -181,9 +223,33 @@ bool DSRHost::shouldBeDropped(const DSRPacket* packet) {
 
 
 void DSRHost::dropReceivedPacket(Packet* packet) {
+    countPacketDrop(packet);
+    delete packet;
+}
+
+void DSRHost::countPacketDrop(Packet* packet) {
     DSRPacket* dsrPacket = dynamic_cast<DSRPacket*>(packet);
     if (dsrPacket->packetType == DSRPacket::PacketType::OTHER) {
         statistics->dropDataPacket();
     }
-    delete packet;
+}
+
+void DSRHost::deleteRoutes(Host* destination) {
+    return;
+}
+
+void DSRHost::sendRERR(DSRPacket* packet) {
+    
+    Link* nextHopLink = getLinkToHost(packet->route.getNextHop(this, true));
+    
+    if (nextHopLink) {
+        packet->errorDestination = packet->destination;
+        packet->destination = packet->source;
+        packet->source = this;
+        packet->packetType = DSRPacket::RERR;
+        forwardPacket(packet, nextHopLink);
+    }
+    else { // The route I was supposed to follow had a broken link, so I tried to reverse, but the link I came from is gone (basically fml) - packet, May 2022
+        dropReceivedPacket(packet);
+    }
 }

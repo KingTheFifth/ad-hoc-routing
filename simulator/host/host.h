@@ -33,27 +33,37 @@ class Host {
         void discoverNeighbours(vector<Host*>* hosts);
 
         /**
-         * 
+         * Add a neighbour 'host' to this host
          */
         void addNeighbour(Host* host);
 
         /**
          * 
          */
+        void deleteNeighbour(Link* link);
+
+        /**
+         * Return true if 'host' is a neighbour of this host
+         */
+        bool isNeighbour(Host* host);
+
+        /**
+         * Get the position of this host
+         */
         Point* getPos() const;
 
         /**
-        *
-        */
+         * Get the distance from this host to 'host'
+         */
         double distanceTo(Host* host) const;
 
         /**
-         * 
+         * Draw this host and all the neighbouring links
          */
         void draw(QGraphicsScene *scene) const;
 
         /**
-         * 
+         * Tick this host forward one simulation tick
          */
         virtual void tick(int currTime);
 
@@ -69,16 +79,26 @@ class Host {
         void transmitPacket(Packet* packet, Link* link);
 
         /**
-         * 
+         * Receive a packet and handle it depending on if it needs to be retransmitted or if it has arrived
          */
         void receivePacket(Packet* packet);
 
         /**
-         * 
+         * Move this host to the new location 'target'
          */
         void moveTo(Point* target);
 
+        /** 
+         * A host is idle if it has no packet in its receivingBuffer nor its transmitBuffer
+         */
         bool isIdle();
+
+        /**
+         *
+         */
+        virtual void countPacketDrop(Packet* packet) = 0;
+
+        virtual void deleteRoutes(Host* destination) = 0;
 
     protected:
         StatisticsHandler* statistics;
@@ -96,14 +116,23 @@ class Host {
         // vector<Link*> perimeterLinks;
 
         /**
-         * Sends a copy of the packet to every neighbour of this host.
+         * Sends a copy of 'packet' to every neighbour of this host.
          */
         void broadcast(Packet* packet);
 
+        /**
+         * Handle the processing of 'packet'
+         */
         virtual void processPacket(Packet* packet) = 0;
 
+        /**
+         * Get the link to 'target'
+         */
         Link* getLinkToHost(const Host* target);
 
+        /**
+         * Drop 'packet'
+         */
         virtual void dropReceivedPacket(Packet* packet) = 0;
 };
 

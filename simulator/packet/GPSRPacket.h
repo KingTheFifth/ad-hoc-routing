@@ -16,7 +16,14 @@ class GPSRPacket : public Packet {
         enum GPSRMode {Greedy, Perimeter};
         GPSRMode mode = Greedy;
 
+        /**
+         * Copy 'other' and set other's values to this packet's values
+         */
         void copyOther(const Packet& other) override {}
+
+        /** 
+         * Make a copy of this packet
+         */
         Packet* copy() override {}
 };
 

@@ -16,24 +16,54 @@ class DSDVHost : public Host {
         ~DSDVHost() = default;
 
         RoutingTable* routingTable;
+
+        /**
+         * 
+         */
         void broadcastTable(RoutingTable* table);
+
     protected:
+        /**
+         * 
+         */
         void processPacket(Packet* packet);
+
     private:
         int lastBroadcast = -BROADCASTDELAY;
         int lastFullBroadcast = -FULLBROADCASTDELAY;
         bool awaitingBroadcast = true;
-        void broadcastChanges();
-        bool shouldBroadcast(int currTime);
-        void tick(int currTime);
 
+        /**
+         * 
+         */
+        void broadcastChanges();
+
+        /**
+         * 
+         */
+        bool shouldBroadcast(int currTime);
+
+        /**
+         * 
+         */
+        void tick(int currTime);
 
         /**
          * 
          */
         Link* DSDV(DSDVPacket* packet);
 
+        /**
+         * 
+         */
         void dropReceivedPacket(Packet* packet);
+
+        /**
+         *
+         */
+        void countPacketDrop(Packet* packet);
+
+        void deleteRoutes(Host* destination);
 };
 
 #endif

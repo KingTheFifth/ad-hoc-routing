@@ -58,6 +58,16 @@ Host* Link::getOtherHost(const Host *currentHost) {
     return hosts.first == currentHost ? hosts.second : hosts.first;
 }
 
+double Link::getLength() {
+    return hosts.first->getPos()->distanceTo(hosts.second->getPos());
+}
+
+void Link::getPackets(vector<Packet*>* resultVector) {
+    for (PacketOnLink* pOnLink : linkBuffer) {
+        resultVector->push_back(pOnLink->packet);
+    }
+}
+
 void Link::forwardPacket(Packet *packet) {
     PacketOnLink* packetOnLink = new PacketOnLink();
     packetOnLink->packet = packet;

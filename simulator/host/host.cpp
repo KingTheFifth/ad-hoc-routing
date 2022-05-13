@@ -14,13 +14,41 @@ void Host::discoverNeighbours(vector<Host*>* hosts) {
 }
 
 void Host::addNeighbour(Host* host) {
-    for (auto& link : neighbours) {
-        if (link->getOtherHost(this) == host) return;
+    if(!isNeighbour(host)){
+        Link* newLink = new Link(this, host, time);
+        neighbours.push_back(newLink);
+        host->neighbours.push_back(newLink);
     }
-    
-    Link* newLink = new Link(this, host, time);
-    neighbours.push_back(newLink);
-    host->neighbours.push_back(newLink);
+}
+
+void Host::deleteNeighbour(Link* link){
+    if(link != nullptr){ //Check if link still exists
+        deleteRoutes(link->getOtherHost(this));
+        if (link->isBroken) { //neighbour has already deleted their side
+            // TODO: Fix so that dropped data packets are counted in the statistics
+            // note: the host subtypes need to do this since only the subtypes know
+            //       if a packet is a data packet or not
+            
+            vector<Packet*> linkPackets;
+            link->getPackets(&linkPackets);
+            for(Packet* p : linkPackets) {
+                countPacketDrop(p);
+            }
+
+            delete link;
+        }
+        else { //neighbour needs to delete their side
+            link->isBroken = true;
+        
+        }
+    }
+}
+
+bool Host::isNeighbour(Host* host) {
+    for (auto& link : neighbours) {
+        if (link != nullptr && link->getOtherHost(this) == host) return true; //Check for nullptr
+    }
+    return false;
 }
 
 Point* Host::getPos() const {
@@ -53,9 +81,33 @@ void Host::tick(int currTime) {
     //if (perimDrawCountdown > 0) perimDrawCountdown--;
     // -------------
 
-    for (auto& link : neighbours) {
-        link->tick(currTime);
+    vector<Link*>::iterator link_it = neighbours.begin();
+    while (link_it != neighbours.end()) {
+        Link* link = *link_it;
+        if (link->getLength() > radius) {
+            deleteNeighbour(link);
+            link_it = neighbours.erase(link_it);
+        }
+        else {
+            link->tick(currTime);
+            link_it++;
+        }
     }
+
+    // for (auto& link : neighbours) {
+    //     if (link->getLength() > radius) {
+    //         if (link->isBroken) {
+    //             deleteNeighbour(link->getOtherHost(this));                
+    //         }
+    //         else {
+    //             link->isBroken = true;
+    //             deleteNeighbour(link->getOtherHost(this));
+    //         }
+    //     }
+    //     else {
+    //         link->tick(currTime);
+    //     }
+    // }
     
     // Start processing packet from buffer
     if (processingCountdown <= 0 && !receivingBuffer.empty()) {
@@ -144,7 +196,7 @@ void Host::broadcast(Packet* packet) {
 
 Link* Host::getLinkToHost(const Host* target) {
     for (Link* l : neighbours) {
-        if (l->getOtherHost(this) == target) return l;
+        if (l != nullptr && l->getOtherHost(this) == target) return l;
     }
     return nullptr;
 }

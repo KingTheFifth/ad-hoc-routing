@@ -53,6 +53,11 @@ unix {
     QMAKE_POST_LINK += $$quote(cp $$PWD/events/events.txt $$OUT_PWD$$escape_expand(\n\t))
     QMAKE_POST_LINK += $$quote(cp $$PWD/events/pres_events.txt $$OUT_PWD$$escape_expand(\n\t))
     QMAKE_POST_LINK += $$quote(cp $$PWD/events/events_small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
+
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_large_dense.txt $$OUT_PWD$$escape_expand(\n\t))
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_large_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_small_dense.txt $$OUT_PWD$$escape_expand(\n\t))
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
     
     QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
     QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_dense.txt $$OUT_PWD$$escape_expand(\n\t))

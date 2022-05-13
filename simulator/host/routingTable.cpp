@@ -52,6 +52,8 @@ void RoutingTable::update(RoutingTable* otherTable){
                 }
                 if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
                     //cout << "other sequence higher" << endl;
+                    //TODO: Newer sequence numbers should always take precedence. Not only if they are shorter.
+                    //TODO: Check if (*otherEntry)->cost is infinite. That would be a broken link and we need to broadcast that ASAP.
                     if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
                         //cout << "other route is cheaper" << endl;
                         ourEntry = entries.erase(ourEntry) - 1;
@@ -67,6 +69,17 @@ void RoutingTable::update(RoutingTable* otherTable){
         }
         if (!entryFound) {
             insert((*otherEntry)->destination, neighbourHost, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost), (*otherEntry)->sequenceNumber);
+        }
+    }
+}
+
+void RoutingTable::setRouteBroken(DSDVHost* destination){
+
+    for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
+        if((*entry)->nextHop == destination){
+            (*entry)->cost = std::numeric_limits<int>::infinity();
+            (*entry)->sequenceNumber.second += 1;
+            (*entry)->hasChanged = true;
         }
     }
 }

@@ -21,7 +21,7 @@ void GPSRHost::processPacket(Packet* packet) {
         }
         else {
             //cout << "Dropping packet " << gpsrPacket << ", due to perimeter loop" << endl;
-            delete gpsrPacket;
+            dropReceivedPacket(gpsrPacket);
         }
     }
 }
@@ -144,6 +144,14 @@ void GPSRHost::getPerimeterLinks(vector<Link*>* result) {
 }
 
 void GPSRHost::dropReceivedPacket(Packet* packet) {
-    statistics->dropDataPacket();
+    countPacketDrop(packet);
     delete packet;
+}
+
+void GPSRHost::countPacketDrop(Packet* packet) {
+    statistics->dropDataPacket();
+}
+
+void GPSRHost::deleteRoutes(Host* destination) {
+    return;
 }

@@ -33,86 +33,80 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string topologyFilename = "large_sparse.txt";
-    string eventsFilename = "events.txt";
+    // string topologyFilename = "large_sparse.txt";
+    string eventsFilename = "ev_small_dense.txt";
     ifstream input;
-    input.open(topologyFilename);
-    
-    vector<Host*> hosts;
+    input.open(eventsFilename);
 
-    // Set up graphics
+    // Set up basic topology properties
     int width;
     int height;
     int radius;
-    //int simulationTime;
 
     input >> width;
     input >> height;
     input >> radius;
-    //input >> simulationTime;
-    width *= WINDOW_SCALE;
-    height *= WINDOW_SCALE;
+    input.close();
+
+    // int x;
+    // int y;
 
     view->setScene(scene);
     view->scale(1, -1); //screen y-axis is inverted
-    view->setSceneRect(0, 0, width, height);
+    view->setSceneRect(0, 0, width * WINDOW_SCALE, height * WINDOW_SCALE);
     view->show();
 
-    // Set up initial topology
-    int x;
-    int y;
-    int time = 0;
-    unsigned id = 0;
-
-    Protocol protocol = Protocol::DSDV;
+    Protocol protocol = Protocol::DSR;
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
-    //int quitDelay = 10000; // TODO: do this properly
     bool eventsDone = false;
 
     eventHandler->loadEvents(eventsFilename);
 
     
-    while(input >> x >> y) {
-        Host* host;
-        switch (protocol) {
-            case DSDV:
-                host = new DSDVHost(statistics, x, y, radius, time, id);
-                break;
-            case DSR: 
-                host = new DSRHost(statistics, x, y, radius, time, id);
-                break;
-            case GPSR:
-                host = new GPSRHost(statistics, x, y, radius, time, id);
-                break;
-        }
-        hosts.push_back(host);
-        id++;
-    }
+    // while(input >> x >> y) {
+    //     Host* host;
+    //     switch (protocol) {
+    //         case DSDV:
+    //             host = new DSDVHost(statistics, x, y, radius, time, id);
+    //             break;
+    //         case DSR: 
+    //             host = new DSRHost(statistics, x, y, radius, time, id);
+    //             break;
+    //         case GPSR:
+    //             host = new GPSRHost(statistics, x, y, radius, time, id);
+    //             break;
+    //     }
+    //     hosts.push_back(host);
+    //     id++;
+    // }
     
-    input.close();
+    // input.close();
     
-    // let all hosts find their neighbours
-    for (auto& host : hosts) {
-        host->discoverNeighbours(&hosts);
-    }
+    // // let all hosts find their neighbours
+    // for (auto& host : hosts) {
+    //     host->discoverNeighbours(&hosts);
+    // }
 
-    if (protocol == Protocol::DSDV) {
-        DSDVHost* startHost = (DSDVHost*) hosts[0];
-        RoutingTable* ourChanges = startHost->routingTable->getChanges();
-        startHost->broadcastTable(ourChanges);
-    }
+    // if (protocol == Protocol::DSDV) {
+    //     DSDVHost* startHost = (DSDVHost*) hosts[0];
+    //     RoutingTable* ourChanges = startHost->routingTable->getChanges();
+    //     startHost->broadcastTable(ourChanges);
+    // }
 
-    // draw the network
-    for (auto& host : hosts) {
-        host->draw(scene);
-    }
+    // // draw the network
+    // for (auto& host : hosts) {
+    //     host->draw(scene);
+    // }
 
-    int packets = 0;
+    int packets = 0; // only used for printing current packet count
+    int time = 0;
+    unsigned id = 0;
     int timeDelta;
     int decay = radius * 2;
-    int overtime = 0;
-    int eventDuration = EVENT_DURATION_DEFAULT; // do something here
+    // int overtime = 0;
+    int eventDuration = EVENT_DURATION_DEFAULT;
+    vector<Host*> hosts;
 
     Host* sender;
     Host* receiver;
@@ -153,7 +147,6 @@ int main(int argc, char *argv[])
                 switch (nextEvent->eventType) {
                     case Event::SEND:
                         packets++;
-                        //cout << "Packet " << packets << ", from: " << nextEvent->senderId << ": ";
                         statistics->packetsSent++;
                         statistics->dataPacketsSent++;
                         handleSendEvent(nextEvent, &hosts, protocol, time);
@@ -213,7 +206,7 @@ int main(int argc, char *argv[])
 }
 
 void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int time) {
-    // TODO: consider the size of data, send multiple packets
+    // TODO: consider the size of data, send multiple packets (if we change throughput to bytes instead of packets)
 
     Host* h1 = (*hosts)[event->senderId];
     Host* h2 = (*hosts)[event->receiverId];
@@ -233,6 +226,7 @@ void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int 
 void handleMoveEvent(Event* event, vector<Host*>* hosts) {
     Point* p = new Point(event->x, event->y);
     (*hosts)[event->hostId]->moveTo(p);
+    // TODO: link breakage, link re-discovery
 }
 
 void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id) {

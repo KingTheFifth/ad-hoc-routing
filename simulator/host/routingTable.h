@@ -24,6 +24,7 @@ struct Row {
     double cost; //Cost in geographical (link) distance traversed by a route
     pair<DSDVHost*, unsigned> sequenceNumber;
     bool hasChanged = true;
+    bool brokenRouteDetected = false;
 };
 
 class RoutingTable {
@@ -34,6 +35,7 @@ class RoutingTable {
         void remove(DSDVHost* destination);
         void update(RoutingTable* otherTable); //updates local routing table from other table
         void updateCost(Row* row, double cost);
+        void setRouteBroken(DSDVHost* destination);
         RoutingTable* getChanges();
         int getNumberOfChanges();
         vector<Row*>* getEntries();

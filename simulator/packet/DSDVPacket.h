@@ -14,7 +14,14 @@ struct DSDVPacket : public Packet {
     PacketType packetType;
     RoutingTable* routingTable;
 
+    /**
+     * Copy 'other' and set other's values to this packet's values
+     */
     void copyOther(const Packet& other);
+
+    /** 
+     * Make a copy of this packet
+     */
     Packet* copy() override;
 };
 

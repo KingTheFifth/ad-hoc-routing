@@ -14,21 +14,22 @@ struct Point {
 	Point(double _x, double _y);
 
 	/**
-	 * 
+	 * Draw this point
 	 */
 	void draw(QGraphicsScene *scene, bool special = false) const; // TODO: remove bool sometime later
 
 	/**
-	 * 
+	 * Draw a line from this point to 'that'
 	 */
 	void drawTo(Point* that, QGraphicsScene *scene) const;
+
 	/**
-	 * 
+	 * Draw a line from this point to 'that'
 	 */
 	void drawToAsPerimeter(const Point* that, QGraphicsScene *scene, bool drawxD) const;
 
 	/**
-	 * 
+	 * Get the distance from this point to 'that'
 	 */
 	double distanceTo(const Point* that) const;
 
@@ -38,12 +39,12 @@ struct Point {
 	double slopeTo(const Point* p) const;
 
 	/**
-	 * 
+	 * Calculate the angle from this point to the point 'p' relative to this points positive x-axis
 	 */
 	double angleTo(const Point* p) const;
 
 	/**
-	 * 
+	 * To string method for the Point struct
 	 */
 	string toString() const;
 };

@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -23,12 +24,6 @@ class EventHandler {
 
     private:
         queue<Event*> events;
-        // void loadEventSendHost(ifstream input, Event* event);
-        // void loadEventSendPos(ifstream input, Event* event);
-        // void loadEventJoin(ifstream input, Event* event);
-        // void loadEventDisconnect(ifstream input, Event* event);
-        // void loadEventMove(ifstream input, Event* event);
-        
 };
 
 #endif
