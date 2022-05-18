@@ -43,6 +43,7 @@ void DSDVHost::processPacket(Packet* packet) {
         }
     }
     else { // Normal data packet.
+        statistics->printHandledPackets();
         const DSDVHost* dest = (DSDVHost*)(dsdvPacket->destination);
         if (dest == this) {
             int delay = time - dsdvPacket->timeSent;
@@ -59,6 +60,7 @@ void DSDVHost::processPacket(Packet* packet) {
         else {
             // DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
             dropReceivedPacket(packet);
+
         }
     }
 }
@@ -111,6 +113,7 @@ void DSDVHost::countPacketDrop(Packet* packet) {
     DSDVPacket* dsdvPacket = dynamic_cast<DSDVPacket*>(packet);
     if (dsdvPacket->packetType == DSDVPacket::PacketType::OTHER) {
         statistics->dropDataPacket();
+        statistics->countPacket(packet->id);
     }
 }
 

@@ -5,7 +5,7 @@
 
 class GPSRPacket : public Packet {
     public:
-        GPSRPacket(const Host* _source, const Host* _destination, int _time);
+        GPSRPacket(const Host* _source, const Host* _destination, int _time, int _id = -1);
         ~GPSRPacket() = default;
 
         const Point* destPos; // D

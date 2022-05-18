@@ -23,7 +23,7 @@ using namespace std;
 
 enum Protocol {DSDV, DSR, GPSR};
 
-void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time);
+void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time, int packets);
 void handleMoveEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
 void handleJoinEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id);
 void handleDisconnectEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
@@ -99,9 +99,9 @@ int main(int argc, char *argv[])
                         packets++;
                         statistics->packetsSent++;
                         statistics->dataPacketsSent++;
-                        handleSendEvent(nextEvent, &hosts, protocol, time);
+                        handleSendEvent(nextEvent, &hosts, protocol, time, packets);
                         //if (packets % 10 == 0) { 
-                            cout << "Packets: " << packets << endl; // TODO: Remove this
+                            //cout << "Packets: " << packets << endl; // TODO: Remove this
                         //}
                         break;
                     case Event::MOVE:
@@ -160,14 +160,14 @@ int main(int argc, char *argv[])
     return a.exec();
 }
 
-void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time) {
+void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time, int packets) {
     // TODO: consider the size of data, send multiple packets (if we change throughput to bytes instead of packets)
 
     Host* h1 = (*hosts)[event->senderId];
     Host* h2 = (*hosts)[event->receiverId];
     switch (protocol) {
         case DSDV:
-            h1->receivePacket(new DSDVPacket(h1, h2, time));
+            h1->receivePacket(new DSDVPacket(h1, h2, time, packets));
             break;
         case DSR: 
             h1->receivePacket(new DSRPacket(h1, h2, time));

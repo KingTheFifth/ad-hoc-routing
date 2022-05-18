@@ -14,7 +14,7 @@ class Link;
 class Packet {
     public:
         Packet() {}
-        Packet(const Host* _source, const Host* _destination, int _time);
+        Packet(const Host* _source, const Host* _destination, int _time, int _id = -1);
 
         // Copy constructor
         Packet(const Packet& other);
@@ -26,6 +26,7 @@ class Packet {
         Host* nextHop;
         int size = PACKET_SIZE;
         int timeSent;
+        int id;
         QColor color = Qt::green;
 
         /**

@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 using namespace std;
 
@@ -14,6 +15,7 @@ struct StatisticsHandler {
     unsigned dataPacketsDropped;
     unsigned avgDelay;
     double avgThroughput;
+    bool handledPackets [200];
 
     string toString() {
         stringstream string;
@@ -38,6 +40,15 @@ struct StatisticsHandler {
     void addRoutingPackets(int amount) {
         packetsSent += amount;
         routingPacketsSent += amount;
+    }
+
+    void countPacket(int id){
+        handledPackets[id] = true;
+    }
+
+    void printHandledPackets(){
+        for (int i = 0; i < 200; i++)
+            cout << i << ": " << handledPackets[i] << endl;
     }
 
     void dropDataPacket() {

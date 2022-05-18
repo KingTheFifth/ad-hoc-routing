@@ -14,7 +14,6 @@ using namespace std;
 class EventHandler {
     public:
         void loadEvents(string filename);
-
         /**
          * Returns the next event. Returns nullptr if there are no more scheduled
          * events. Note that the user must delete the Event pointer after use.
