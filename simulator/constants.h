@@ -1,7 +1,7 @@
 #define WINDOW_SCALE 1 // scaling of the simulation window
 #define PACKET_SIZE 4096
 #define TICK_STEP 3 // time units incremented every tick
-#define TICK_INTERVAL 50 // ms usually 1
+#define TICK_INTERVAL 10 // ms usually 50
 #define LINK_SPEED 5.0 // usually 1.0
 #define CLOSE_THRESHOLD 3 // length units within which a point is considered close enough
 #define PI 3.141592653589793238462643383279502884L
@@ -17,8 +17,8 @@
 
 #define HOST_MOBILITY 1 // on / off
 
-#define BROADCASTDELAY 500 //TODO: Try out different delays and their effects on throughput
-#define FULLBROADCASTDELAY 2000 //TODO: Try out different delays and their effects on throughput
+#define BROADCASTDELAY 1000 //TODO: Try out different delays and their effects on throughput
+#define FULLBROADCASTDELAY 5000 //TODO: Try out different delays and their effects on throughput
 
 #define EVENT_DURATION_DEFAULT 40
 #define EVENT_DURATION_JOIN 10

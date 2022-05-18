@@ -35,11 +35,13 @@ class RoutingTable {
         void remove(DSDVHost* destination);
         void update(RoutingTable* otherTable); //updates local routing table from other table
         void updateCost(Row* row, double cost);
+        int getCost(const DSDVHost* host);
         void setRouteBroken(DSDVHost* destination);
         RoutingTable* getChanges();
         int getNumberOfChanges();
         vector<Row*>* getEntries();
         vector<Row*> entries;
+        bool brokenLinks = false;
     private:
         Row* getEntry(const DSDVHost* host);
 };

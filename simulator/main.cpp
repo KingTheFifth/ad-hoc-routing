@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     view->show();
     scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
 
-    Protocol protocol = Protocol::DSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
+    Protocol protocol = Protocol::DSDV; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     bool eventsDone = false;

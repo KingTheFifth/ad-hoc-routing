@@ -29,8 +29,8 @@ class DSDVHost : public Host {
         void processPacket(Packet* packet);
 
     private:
-        int lastBroadcast = -BROADCASTDELAY;
-        int lastFullBroadcast = -FULLBROADCASTDELAY;
+        int nextBroadcast = 0;
+        int nextFullBroadcast = 0;
         bool awaitingBroadcast = true;
 
         /**
