@@ -1,7 +1,7 @@
 #define WINDOW_SCALE 1 // scaling of the simulation window
 #define PACKET_SIZE 4096
 #define TICK_STEP 3 // time units incremented every tick
-#define TICK_INTERVAL 10 // ms usually 50
+#define TICK_INTERVAL 100 // ms usually 50
 #define LINK_SPEED 5.0 // usually 1.0
 #define CLOSE_THRESHOLD 3 // length units within which a point is considered close enough
 #define PI 3.141592653589793238462643383279502884L

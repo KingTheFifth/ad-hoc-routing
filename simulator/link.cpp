@@ -43,9 +43,9 @@ void Link::draw(QGraphicsScene *scene) {
             x += dx * progress;
             y += dy * progress;
         }
-
-        QGraphicsRectItem *item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
-        item->setBrush(QBrush(QColor(0, 0, 255)));
+        QGraphicsRectItem *item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 6 * WINDOW_SCALE, 6 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
+        //item->setBrush(QBrush(QColor(Qt::blue)));
+        item->setBrush(QBrush(QColor((*it)->packet->color)));
         scene->addItem(item);
 
         // Draws packets, which only has implementation for DSR Packets that draw packet type text

@@ -34,7 +34,7 @@ void DSDVHost::processPacket(Packet* packet) {
         routingTable->update(dsdvPacket->routingTable);
         int numberOfChanges = routingTable->getNumberOfChanges();
         if(routingTable->brokenLinks){
-            nextFullBroadcast = 0;
+            //nextFullBroadcast = 0;
             awaitingBroadcast = true;
             routingTable->brokenLinks = false;
         }
@@ -50,10 +50,8 @@ void DSDVHost::processPacket(Packet* packet) {
             delete dsdvPacket;
             return;
         }
-        //TODO: Handle if nexthop distance is longer than link
         DSDVHost* nextHop = routingTable->getNextHop(dest);
         int nextHopCost = routingTable->getCost(nextHop);
-        cout << nextHop << " : " << nextHopCost << endl;
         if(nextHop != nullptr && nextHopCost != std::numeric_limits<int>::infinity()){ // Destination found in table
             Link* link = getLinkToHost(nextHop);
             forwardPacket(dsdvPacket, link);
@@ -68,6 +66,7 @@ void DSDVHost::processPacket(Packet* packet) {
 void DSDVHost::broadcastTable(RoutingTable* table) {
     DSDVPacket* broadcastPacket = new DSDVPacket(this, nullptr, time); // Create packet of BROADCAST type with pointer to table
     broadcastPacket->packetType = DSDVPacket::BROADCAST;
+    broadcastPacket->color = Qt::red;
     broadcastPacket->routingTable = table;
     broadcastPacket->source = this;
     broadcast(broadcastPacket);

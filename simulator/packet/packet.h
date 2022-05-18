@@ -26,6 +26,7 @@ class Packet {
         Host* nextHop;
         int size = PACKET_SIZE;
         int timeSent;
+        QColor color = Qt::green;
 
         /**
          * Copy 'other' and set other's values to this packet's values
