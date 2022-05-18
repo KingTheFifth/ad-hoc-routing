@@ -9,6 +9,14 @@ Link::Link(Host *hostA, Host *hostB, int currTime) {
     hosts.second = hostB;
     // length = hostA->getPos()->distanceTo(hostB->getPos()) / WINDOW_SCALE;
     time = currTime;
+    isBroken = false;
+}
+
+Link::~Link() {
+    for (PacketOnLink* p : linkBuffer) {
+        delete p->packet;
+        delete p;
+    }
 }
 
 void Link::draw(QGraphicsScene *scene) { 
@@ -40,6 +48,9 @@ void Link::draw(QGraphicsScene *scene) {
         item->setBrush(QBrush(QColor(0, 0, 255)));
         scene->addItem(item);
 
+        // Draws packets, which only has implementation for DSR Packets that draw packet type text
+        // (*it)->packet->draw(scene, x, y);
+
         // --- debug --- 
         // GPSRPacket* gpsrPacket = (GPSRPacket*) (*it)->packet;
         // const Point* d = gpsrPacket->destPos;
@@ -59,6 +70,7 @@ Host* Link::getOtherHost(const Host *currentHost) {
 }
 
 double Link::getLength() {
+    if (isBroken) return std::numeric_limits<double>::infinity();
     return hosts.first->getPos()->distanceTo(hosts.second->getPos());
 }
 

@@ -63,6 +63,10 @@ unix {
     QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_dense.txt $$OUT_PWD$$escape_expand(\n\t))
     QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/large_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
     QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/large_dense.txt $$OUT_PWD$$escape_expand(\n\t))
+
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_move_test.txt $$OUT_PWD$$escape_expand(\n\t))
+
+    QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_small_dense_move.txt $$OUT_PWD$$escape_expand(\n\t))
 }
 win32 {
     QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\events\events.txt $$OUT_PWD$$escape_expand(\n\t))

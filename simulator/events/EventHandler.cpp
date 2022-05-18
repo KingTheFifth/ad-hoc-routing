@@ -40,35 +40,6 @@ void EventHandler::loadEvents(string filename) {
         // cout << "Event: " << event->
         events.push(event);
     }
-
-    /*
-    while (input >> eventType) {
-        Event* event = new Event();
-        event->eventType = (Event::EventType) eventType;
-        event->duration = EVENT_DURATION_DEFAULT;
-        switch (eventType) {
-            case Event::SEND:
-                input >> event->senderId;
-                input >> event->receiverId;
-                input >> event->bytes;
-                break;
-            case Event::JOIN:
-                input >> event->x;
-                input >> event->y;
-                event->duration = EVENT_DURATION_JOIN;
-                break;
-            case Event::DISCONNECT:
-                input >> event->hostId;
-                break;
-            case Event::MOVE:
-                input >> event->hostId;
-                input >> event->x;
-                input >> event->y;
-                break;
-        }
-        events.push(event);
-    }
-    */
 }
 
 Event* EventHandler::nextEvent() {

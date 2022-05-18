@@ -8,11 +8,13 @@
 
 struct DSRHost : public Host {
     public:
-        DSRHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
-            : Host(_statistics, _x, _y, _radius, _time, _id), requestIDCounter(0) {}
+        DSRHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
+            : Host(_statistics, _x, _y, _radius, _time, _id, _hosts), requestIDCounter(0) {}
         // void tick(int currTime);
 
-        ~DSRHost() = default;
+        ~DSRHost();
+
+        void die();
 
     protected:
 
@@ -27,6 +29,7 @@ struct DSRHost : public Host {
          */
         void dropReceivedPacket(Packet* packet);
 
+
     private:
         unsigned requestIDCounter;
         vector<DSRRoute*> routes;
@@ -38,7 +41,7 @@ struct DSRHost : public Host {
         /**
          * Run the DSR algorithm and return the link for the packet to route across
          */
-        Link* DSR(DSRPacket* packet);
+        void DSR(DSRPacket* packet);
 
         /**
          * 
@@ -60,6 +63,8 @@ struct DSRHost : public Host {
         void deleteRoutes(Host* destination);
 
         void sendRERR(DSRPacket* packet);
+
+        void handleRERR(DSRPacket* packet);
 };
 
 #endif

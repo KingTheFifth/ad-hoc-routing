@@ -7,7 +7,8 @@
 struct DSRPacket : public Packet {
     DSRPacket() : Packet() {}
     DSRPacket(const Host* _source, const Host* _destination, int _time);
-    virtual ~DSRPacket() = default;
+    
+    ~DSRPacket() = default;
 
     /**
      * Copy 'other' and set other's values to this packet's values
@@ -18,6 +19,8 @@ struct DSRPacket : public Packet {
      * Make a copy of this packet
      */
     Packet* copy() override;
+
+    //virtual void draw(QGraphicsScene *scene, int x, int y) const;
 
     enum PacketType {RREQ, RREP, RERR, OTHER};
     unsigned requestID;

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <thread>
 #include <chrono>
 #include "host/host.h"
@@ -22,10 +23,10 @@ using namespace std;
 
 enum Protocol {DSDV, DSR, GPSR};
 
-void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int time);
-void handleMoveEvent(Event* event, vector<Host*>* hosts);
-void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id);
-void handleDisconnectEvent(Event* event, vector<Host*>* hosts);
+void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time);
+void handleMoveEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
+void handleJoinEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id);
+void handleDisconnectEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
 
 int main(int argc, char *argv[])
 {
@@ -33,8 +34,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    // string topologyFilename = "large_sparse.txt";
-    string eventsFilename = "ev_small_dense.txt";
+    string eventsFilename = "ev_small_dense_move.txt"; // THIS IS WHERE YOU CHANGE TOPOLOGY/EVENT SETS AAAAAAAAAAAAAAAAAHHHHHHHH
     ifstream input;
     input.open(eventsFilename);
 
@@ -48,92 +48,42 @@ int main(int argc, char *argv[])
     input >> radius;
     input.close();
 
-    // int x;
-    // int y;
-
     view->setScene(scene);
-    view->scale(1, -1); //screen y-axis is inverted
+    view->scale(1, -1); // Screen y-axis is inverted (so that y is counted from bottom to top of screen)
     view->setSceneRect(0, 0, width * WINDOW_SCALE, height * WINDOW_SCALE);
     view->show();
+    scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
 
-    Protocol protocol = Protocol::DSR;
+    Protocol protocol = Protocol::DSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     bool eventsDone = false;
 
     eventHandler->loadEvents(eventsFilename);
 
-    
-    // while(input >> x >> y) {
-    //     Host* host;
-    //     switch (protocol) {
-    //         case DSDV:
-    //             host = new DSDVHost(statistics, x, y, radius, time, id);
-    //             break;
-    //         case DSR: 
-    //             host = new DSRHost(statistics, x, y, radius, time, id);
-    //             break;
-    //         case GPSR:
-    //             host = new GPSRHost(statistics, x, y, radius, time, id);
-    //             break;
-    //     }
-    //     hosts.push_back(host);
-    //     id++;
-    // }
-    
-    // input.close();
-    
-    // // let all hosts find their neighbours
-    // for (auto& host : hosts) {
-    //     host->discoverNeighbours(&hosts);
-    // }
-
-    // if (protocol == Protocol::DSDV) {
-    //     DSDVHost* startHost = (DSDVHost*) hosts[0];
-    //     RoutingTable* ourChanges = startHost->routingTable->getChanges();
-    //     startHost->broadcastTable(ourChanges);
-    // }
-
-    // // draw the network
-    // for (auto& host : hosts) {
-    //     host->draw(scene);
-    // }
-
-    int packets = 0; // only used for printing current packet count
+    int packets = 0; // Only used for printing current packet count
     int time = 0;
     unsigned id = 0;
     int timeDelta;
-    int decay = radius * 2;
-    // int overtime = 0;
     int eventDuration = EVENT_DURATION_DEFAULT;
-    vector<Host*> hosts;
+    unordered_map<unsigned, Host*> hosts;
 
     Host* sender;
     Host* receiver;
-    if (ONLY_ONE_PACKET) {
+    if (ONLY_ONE_PACKET) { // DEBUG
         sender = hosts[2];
         receiver = hosts[8];
     }
 
     bool running = true;
-    while (running) { // Simulation is running
+    while (running) {
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
 
         if (eventsDone && statistics->dataPacketsSent == statistics->dataPacketsArrived + statistics->dataPacketsDropped) {
             running = false;
-            
-            // cout << "Going into overtime!" << endl;
-            // overtime += TICK_STEP;
-            // decay -= TICK_STEP;
-            // for (auto& host : hosts) {
-            //     if (!(host->isIdle())) {
-            //         decay = radius * 2;
-            //         break;
-            //     } 
-            // }
         }
 
-        for (auto& host : hosts) host->tick(time);
+        for (auto it : hosts) it.second->tick(time);
 
         eventDuration -= TICK_STEP;
 
@@ -150,9 +100,12 @@ int main(int argc, char *argv[])
                         statistics->packetsSent++;
                         statistics->dataPacketsSent++;
                         handleSendEvent(nextEvent, &hosts, protocol, time);
+                        //if (packets % 10 == 0) { 
+                            cout << "Packets: " << packets << endl; // TODO: Remove this
+                        //}
                         break;
                     case Event::MOVE:
-                        //handleMoveEvent(nextEvent, &hosts);
+                        handleMoveEvent(nextEvent, &hosts);
                         break;
                     case Event::JOIN:
                         handleJoinEvent(nextEvent, &hosts, protocol, statistics, radius, time, id);
@@ -162,9 +115,7 @@ int main(int argc, char *argv[])
                         handleDisconnectEvent(nextEvent, &hosts);
                         break;
                 }
-            
-                // packets++;
-                if (packets % 10 == 0) { cout << "Packets: " << packets << endl; }
+                delete nextEvent;
             }
         }
         else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) { // DEBUG
@@ -182,19 +133,19 @@ int main(int argc, char *argv[])
         }
 
         scene->clear();
-        for (auto& host : hosts) {
-            host->draw(scene);
+        for (auto it : hosts) {
+            it.second->draw(scene);
         }
         
         if (ONLY_ONE_PACKET) {
-            sender->getPos()->draw(scene, true);
-            receiver->getPos()->draw(scene, true);
+            // sender->getPos()->draw(scene, true);
+            // receiver->getPos()->draw(scene, true);
         }
 
         view->update();
         a.processEvents();
         time += TICK_STEP;
-        timeDelta = TICK_SPEED - (int) chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - before).count();
+        timeDelta = TICK_INTERVAL - (int) chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - before).count();
         if (timeDelta < 0) timeDelta = 0;
 
         this_thread::sleep_for(chrono::milliseconds(timeDelta));
@@ -202,10 +153,14 @@ int main(int argc, char *argv[])
 
     cout << statistics->toString() << endl;
 
+    for (auto it : hosts) {
+        delete it.second;
+    }
+
     return a.exec();
 }
 
-void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int time) {
+void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time) {
     // TODO: consider the size of data, send multiple packets (if we change throughput to bytes instead of packets)
 
     Host* h1 = (*hosts)[event->senderId];
@@ -223,32 +178,33 @@ void handleSendEvent(Event* event, vector<Host*>* hosts, Protocol protocol, int 
     }
 }
 
-void handleMoveEvent(Event* event, vector<Host*>* hosts) {
+void handleMoveEvent(Event* event, unordered_map<unsigned, Host*>* hosts) {
     Point* p = new Point(event->x, event->y);
     (*hosts)[event->hostId]->moveTo(p);
-    // TODO: link breakage, link re-discovery
 }
 
-void handleJoinEvent(Event* event, vector<Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id) {
+void handleJoinEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id) {
     Host* newHost;
     int x = event->x;
     int y = event->y;
     switch (protocol) {
         case DSDV:
-            newHost = new DSDVHost(statistics, x, y, radius, time, id);
+            newHost = new DSDVHost(statistics, x, y, radius, time, id, hosts);
             break;
         case DSR:
-            newHost = new DSRHost(statistics, x, y, radius, time, id);
+            newHost = new DSRHost(statistics, x, y, radius, time, id, hosts);
             break;
         case GPSR:
-            newHost = new GPSRHost(statistics, x, y, radius, time, id);
+            newHost = new GPSRHost(statistics, x, y, radius, time, id, hosts);
             break;
     }
-    hosts->push_back(newHost);
-    newHost->discoverNeighbours(hosts);
+    hosts->insert(make_pair(newHost->id, newHost));
+    newHost->discoverNeighbours();
 }
 
-void handleDisconnectEvent(Event* event, vector<Host*>* hosts) {
-    // TODO: Do something, lol
-    return;
+void handleDisconnectEvent(Event* event, unordered_map<unsigned, Host*>* hosts) {
+    Host* host = (*hosts)[event->senderId];
+    host->die();
+    hosts->erase(host->id);
+    delete host;
 }

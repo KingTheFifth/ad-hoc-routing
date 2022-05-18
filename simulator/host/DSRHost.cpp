@@ -1,6 +1,27 @@
 #include "DSRHost.h"
 #include "link.h"
 
+DSRHost::~DSRHost() {
+    for (auto& route : routes) {
+        delete route;
+    }
+    for (auto& packetInBuffer : waitingForRouteBuffer) {
+        delete packetInBuffer.first;
+    }
+    while (!transmitBuffer.empty()) {
+        Packet* p = transmitBuffer.front().first;
+        transmitBuffer.pop();
+        dropReceivedPacket(p);
+    }
+
+    while (!receivingBuffer.empty()) {
+        Packet* p = receivingBuffer.front();
+        receivingBuffer.pop();
+        dropReceivedPacket(p);
+    }
+    // Host::~Host();
+}
+
 void DSRHost::tick(int currTime) {
     int timeDelta = currTime - time;
     Host::tick(currTime);
@@ -10,6 +31,7 @@ void DSRHost::tick(int currTime) {
             it->second -= timeDelta;
 
             if (it->second <= 0) {
+                cout << "Packet from " << it->first->source << " to " << it->first->destination << "timed out" << endl;
                 it->first->retryCount++;
                 if (receivingBuffer.size()*PACKET_SIZE >= HOST_BUFFER_SIZE) {
                     it->second = DSR_TIMEOUT / 2;
@@ -20,6 +42,7 @@ void DSRHost::tick(int currTime) {
             }
 
             else if (it->first->retryCount >= MAX_RETRY_COUNT) {
+                cout << "Packet from " << it->first->source->id << " to " << it->first->destination->id << "reached retry count " << it->first->retryCount << endl;
                 DSRPacket* p = it->first;
                 it = waitingForRouteBuffer.erase(it) - 1;
                 dropReceivedPacket(p);
@@ -28,11 +51,16 @@ void DSRHost::tick(int currTime) {
     }
 }
 
-Link* DSRHost::DSR(DSRPacket* packet) {
+void DSRHost::DSR(DSRPacket* packet) {
     DSRRoute* cachedRoute = getCachedRoute(packet->destination);
     if (cachedRoute) {
-        packet->route = *cachedRoute;
-        return getLinkToHost(cachedRoute->getNextHop(this, false));
+        packet->route.copyOther(*cachedRoute, false);
+        Link* nextHop = getLinkToHost(cachedRoute->getNextHop(this, false));
+        if (nextHop) {
+            forwardPacket(packet, nextHop);
+            return;
+        }
+        // We have found a broken cached route
     }
 
     waitingForRouteBuffer.push_back(make_pair(packet, DSR_TIMEOUT));
@@ -45,7 +73,6 @@ Link* DSRHost::DSR(DSRPacket* packet) {
     broadcast(RREQ);
     statistics->addRoutingPackets(neighbours.size());
     delete RREQ;
-    return nullptr;
 }
 
 void DSRHost::processPacket(Packet* packet) {
@@ -83,6 +110,15 @@ void DSRHost::processPacket(Packet* packet) {
         else { // Not yet arrived
             DSRRoute* cachedRoute = getCachedRoute(dsrPacket->destination);
             if (cachedRoute) { // If this host has a cached route to the destination
+                if (cachedRoute->hasTarget(dsrPacket->source)) {
+                    cout << "RREQ for packet to host " << dsrPacket->destination->id << ", cached route: " << cachedRoute << endl;
+                    // If we want to route through the source, but the source does not know how to reach 
+                    // the destination then we have reached some sort of invalid route
+                    cachedRoute->trimBack(dsrPacket->source);
+                    dropReceivedPacket(dsrPacket);
+                    return;
+                }
+
                 DSRPacket* RREP = new DSRPacket();
                 RREP->copyOther(*dsrPacket);
                 RREP->packetType = DSRPacket::RREP;
@@ -92,11 +128,11 @@ void DSRHost::processPacket(Packet* packet) {
                 RREP->route.addRoute(cachedRoute);
 
                 Link* nextHop = getLinkToHost(RREP->route.getNextHop(this, true));
-                forwardPacket(RREP, nextHop);
-
-                statistics->addRoutingPackets(1);
-                //statistics->packetsSent++;
-                //statistics->routingPacketsSent++;
+                if (nextHop) {
+                    forwardPacket(RREP, nextHop);
+                    statistics->addRoutingPackets(1);
+                }
+                
             }
             else { // No cached route to destination from this host
                 dsrPacket->route.addNode(this);
@@ -105,12 +141,11 @@ void DSRHost::processPacket(Packet* packet) {
                     routes.push_back(reversedRouteCopy);
                 }
                 statistics->addRoutingPackets(neighbours.size());
-                //statistics->packetsSent += neighbours.size();
-                //statistics->routingPacketsSent += neighbours.size();
                 broadcast(dsrPacket);
             }
 
             delete dsrPacket;
+            return;
         }
     }
 
@@ -118,45 +153,61 @@ void DSRHost::processPacket(Packet* packet) {
         if (dsrPacket->destination == this) { // Arrived at destination
             for (vector<pair<DSRPacket*, int>>::iterator it = waitingForRouteBuffer.begin(); it != waitingForRouteBuffer.end(); it++) {
                 if (it->first->destination == dsrPacket->source) { // If 'it' is the packet we have been waiting to send
-                    it->first->route = dsrPacket->route;
+                    it->first->route.copyOther(dsrPacket->route, false);
                     Link* nextHop = getLinkToHost(it->first->route.getNextHop(this, false));
                     forwardPacket(it->first, nextHop);
                     waitingForRouteBuffer.erase(it);
                     routes.push_back(new DSRRoute(dsrPacket->route));
 
-                    // statistics->packetsSent++;
-                    // statistics->dataPacketsSent++;
                     delete dsrPacket;
                     return; // TODO: Perhaps remove this? -> All packets going to the same destination are sent
                 }
             }
             // We got a RREP for a request we have already processed
             delete dsrPacket;
+            return;
         }
         else { // Not yet at destination
-            DSRRoute* route = new DSRRoute(dsrPacket->route);
-            route->trimFront(this);
-            routes.push_back(route);
+            // If the reply contains a route that this host does not know, cache it
+            if(!getCachedNextHop(dsrPacket->destination)) {
+                DSRRoute* route = new DSRRoute(dsrPacket->route);
+                route->trimFront(this);
+                routes.push_back(route);
+            }
 
             Link* nextHop = getLinkToHost(dsrPacket->route.getNextHop(this, true));
-            forwardPacket(dsrPacket, nextHop);
+            if (nextHop) {
+                forwardPacket(dsrPacket, nextHop);
+                return;
+            }
+            else {
+                delete dsrPacket;
+                return;
+            }
         }
     }
 
     else if (dsrPacket->packetType == DSRPacket::RERR) { // RERR packets
         if (dsrPacket->destination == this) {
-            // re-transmit?
             // Delete cached route to dsrPacket->errorDestination (trim from source of packet to errorDestination)
+            handleRERR(dsrPacket);
+
             dsrPacket->packetType = DSRPacket::OTHER;
             dsrPacket->source = this;
             dsrPacket->destination = dsrPacket->errorDestination;
             dsrPacket->route.empty();
+            dsrPacket->retryCount++;
             receivePacket(dsrPacket);
         }
         else {
-            // TODO: Optimise by trimming cached route to packet's source
+            handleRERR(dsrPacket);
             Link* nextHop = getLinkToHost(dsrPacket->route.getNextHop(this, true));
-            forwardPacket(dsrPacket, nextHop);
+            if (nextHop) {
+                forwardPacket(dsrPacket, nextHop);
+                return;
+            }
+            dropReceivedPacket(dsrPacket);
+            return;
         }
     }
 
@@ -165,6 +216,7 @@ void DSRHost::processPacket(Packet* packet) {
             int delay = time - dsrPacket->timeSent;
             statistics->addPacketArrival(delay);
             delete dsrPacket;
+            return;
         }
         else { // Not yet at destination
             if (!dsrPacket->route.isEmpty()) { // If the packet already has a route to follow
@@ -174,10 +226,7 @@ void DSRHost::processPacket(Packet* packet) {
                 else forwardPacket(dsrPacket, nextHop);
             }
             else { // No route to follow, send the packet normally
-                Link* l = DSR(dsrPacket);
-                if (l) {
-                    forwardPacket(dsrPacket, l);
-                }
+                DSR(dsrPacket);
             }
         }
     }
@@ -229,7 +278,7 @@ void DSRHost::dropReceivedPacket(Packet* packet) {
 
 void DSRHost::countPacketDrop(Packet* packet) {
     DSRPacket* dsrPacket = dynamic_cast<DSRPacket*>(packet);
-    if (dsrPacket->packetType == DSRPacket::PacketType::OTHER) {
+    if (dsrPacket->packetType == DSRPacket::PacketType::OTHER || dsrPacket->packetType == DSRPacket::PacketType::RERR) {
         statistics->dropDataPacket();
     }
 }
@@ -243,6 +292,7 @@ void DSRHost::sendRERR(DSRPacket* packet) {
     Link* nextHopLink = getLinkToHost(packet->route.getNextHop(this, true));
     
     if (nextHopLink) {
+        cout << "Sending RERR to " << packet->source->id << " for " << packet->destination->id << ", from " << id << endl;
         packet->errorDestination = packet->destination;
         packet->destination = packet->source;
         packet->source = this;
@@ -250,6 +300,48 @@ void DSRHost::sendRERR(DSRPacket* packet) {
         forwardPacket(packet, nextHopLink);
     }
     else { // The route I was supposed to follow had a broken link, so I tried to reverse, but the link I came from is gone (basically fml) - packet, May 2022
+        // TODO: this should be dropped as a data packet
         dropReceivedPacket(packet);
+    }
+}
+
+void DSRHost::handleRERR(DSRPacket* packet) {
+    const Host* brokenLink = packet->route.getNextHop(packet->source, false);
+    // for (vector<DSRRoute*>::iterator it = routes.begin(); it != routes.end(); it++) {
+    //     DSRRoute* route = *it;
+    //     if (route->hasTarget(brokenLink)) {
+    //         route->trimBack(packet->source);
+
+    //         if (route->size() == 1) {
+    //             it = routes.erase(it) - 1;
+    //             delete route;
+    //         }
+    //     }
+    // }
+
+    vector<DSRRoute*>::iterator it = routes.begin();
+    while(it != routes.end()) {
+        DSRRoute* route = *it;
+        if (route->hasTarget(brokenLink)) {
+            route->trimBack(packet->source);
+
+            if (route->size() == 1) {
+                delete route;
+                it = routes.erase(it);
+            }
+            else {
+                it++;
+            }
+        }
+        else {
+            it++;
+        }
+    }
+}
+
+void DSRHost::die() {
+    Host::die();
+    for (auto& packetInBuffer : waitingForRouteBuffer) {
+        dropReceivedPacket(packetInBuffer.first);
     }
 }

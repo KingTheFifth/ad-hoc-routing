@@ -11,9 +11,9 @@ class RoutingTable;
 
 class DSDVHost : public Host {
     public:
-        DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id);
+        DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts);
         
-        ~DSDVHost() = default;
+        ~DSDVHost();
 
         RoutingTable* routingTable;
 

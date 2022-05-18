@@ -1,7 +1,7 @@
 #ifndef HOST_H
 #define HOST_H
 
-#include <vector>
+#include <unordered_map>
 #include <queue>
 #include <QGraphicsScene>
 #include <utility>
@@ -17,20 +17,21 @@ class Link;
 
 class Host {
     public:
-        Host(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
-        : statistics(_statistics), radius(_radius), time(_time), id(_id), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0) {
+        Host(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
+        : statistics(_statistics), radius(_radius), id(_id), time(_time), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0), hosts(_hosts) {
             location = new Point(_x, _y);
         }
 
-        virtual ~Host() = default;
+        virtual ~Host();
 
         vector<Link*> neighbours;
         queue<Packet*> receivingBuffer;
+        unsigned id;
 
         /**
-         * Adds all found neighbours to 'hosts'.
+         * 
          */
-        void discoverNeighbours(vector<Host*>* hosts);
+        void discoverNeighbours();
 
         /**
          * Add a neighbour 'host' to this host
@@ -100,16 +101,17 @@ class Host {
 
         virtual void deleteRoutes(Host* destination) = 0;
 
+        virtual void die();
     protected:
         StatisticsHandler* statistics;
         Point* location;
         int radius;
         int time;
-        unsigned id;
         Point* mobilityTarget;
         queue<pair<Packet*, Link*>> transmitBuffer;
         int processingCountdown;
         int transmitCountdown;
+        unordered_map<unsigned, Host*>* hosts;
 
         // debug
         // int perimDrawCountdown = 0;
@@ -134,6 +136,8 @@ class Host {
          * Drop 'packet'
          */
         virtual void dropReceivedPacket(Packet* packet) = 0;
+
+        
 };
 
 #endif

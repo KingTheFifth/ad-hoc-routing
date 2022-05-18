@@ -4,11 +4,18 @@
 #include "packet/packet.h"
 #include <cmath>
 
-void Host::discoverNeighbours(vector<Host*>* hosts) {
-    for (auto& host : *hosts) {
-        double distance = location->distanceTo(host->location);
-        if (host != this && distance < radius) {
-            addNeighbour(host);
+Host::~Host() {
+    delete location;
+    if (mobilityTarget) {
+        delete mobilityTarget;
+    }
+}
+
+void Host::discoverNeighbours() {
+    for (auto it : *hosts) {
+        double distance = location->distanceTo(it.second->location);
+        if (it.second != this && distance < radius) {
+            addNeighbour(it.second);
         }
     }
 }
@@ -39,7 +46,6 @@ void Host::deleteNeighbour(Link* link){
         }
         else { //neighbour needs to delete their side
             link->isBroken = true;
-        
         }
     }
 }
@@ -60,6 +66,7 @@ double Host::distanceTo(Host* host) const {
 }
 
 void Host::draw(QGraphicsScene *scene) const {
+    // return;
     location->draw(scene);
     for (auto& neighbour : neighbours) {
         neighbour->draw(scene);
@@ -93,21 +100,6 @@ void Host::tick(int currTime) {
             link_it++;
         }
     }
-
-    // for (auto& link : neighbours) {
-    //     if (link->getLength() > radius) {
-    //         if (link->isBroken) {
-    //             deleteNeighbour(link->getOtherHost(this));                
-    //         }
-    //         else {
-    //             link->isBroken = true;
-    //             deleteNeighbour(link->getOtherHost(this));
-    //         }
-    //     }
-    //     else {
-    //         link->tick(currTime);
-    //     }
-    // }
     
     // Start processing packet from buffer
     if (processingCountdown <= 0 && !receivingBuffer.empty()) {
@@ -139,6 +131,7 @@ void Host::tick(int currTime) {
         if (location->distanceTo(mobilityTarget) < CLOSE_THRESHOLD) {
             delete mobilityTarget;
             mobilityTarget = nullptr;
+            discoverNeighbours();
         }
         else if (time % (HOST_MOVEMENT_SPEED * TICK_STEP) == 0) {
             // Move towards mobilityTarget
@@ -147,10 +140,11 @@ void Host::tick(int currTime) {
             double dy = sin(angle) * step;
             double dx = cos(angle) * step;
 
-
             location->y += dy;
             location->x += dx;
-            cout << "Moving toward " << *mobilityTarget << ". Currently at " << location << endl;
+
+            discoverNeighbours();
+            //cout << "Moving toward " << *mobilityTarget << ". Currently at " << location << endl;
         }
     }
     
@@ -199,4 +193,10 @@ Link* Host::getLinkToHost(const Host* target) {
         if (l != nullptr && l->getOtherHost(this) == target) return l;
     }
     return nullptr;
+}
+
+void Host::die() {
+    for (auto& link : neighbours) {
+        deleteNeighbour(link);
+    }
 }

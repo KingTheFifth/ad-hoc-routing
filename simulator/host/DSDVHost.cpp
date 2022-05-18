@@ -4,16 +4,31 @@
 #include "packet/DSDVPacket.h"
 #include <iostream>
 
-DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id)
-            : Host(_statistics, _x, _y, _radius, _time, _id) {
+DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
+            : Host(_statistics, _x, _y, _radius, _time, _id, _hosts) {
                 routingTable = new RoutingTable();
                 routingTable->insert(this, this, 0.0, make_pair(this, (unsigned) 0));
                 }
 
+DSDVHost::~DSDVHost() {
+    while (!transmitBuffer.empty()) {
+        Packet* p = transmitBuffer.front().first;
+        transmitBuffer.pop();
+        dropReceivedPacket(p);
+    }
+
+    while (!receivingBuffer.empty()) {
+        Packet* p = receivingBuffer.front();
+        receivingBuffer.pop();
+        dropReceivedPacket(p);
+    }
+    // Host::~Host();
+}
+
 void DSDVHost::processPacket(Packet* packet) {
     DSDVPacket* dsdvPacket = (DSDVPacket*) packet;
     DSDVPacket::PacketType type = dsdvPacket->packetType;
-    if (type == DSDVPacket::BROADCAST) { //We received a broadcasted routing table. Update ours
+    if (type == DSDVPacket::BROADCAST) { // We received a broadcasted routing table. Update ours
         routingTable->update(dsdvPacket->routingTable);
         int numberOfChanges = routingTable->getNumberOfChanges();
         //TODO: Check if brokenRouteDetected flag in routing table is true.
@@ -24,7 +39,7 @@ void DSDVHost::processPacket(Packet* packet) {
             awaitingBroadcast = true;
         }
     }
-    else { //Normal data packet.
+    else { // Normal data packet.
         const DSDVHost* dest = (DSDVHost*)(dsdvPacket->destination);
         if (dest == this) {
             int delay = time - dsdvPacket->timeSent;
@@ -34,19 +49,19 @@ void DSDVHost::processPacket(Packet* packet) {
         }
 
         DSDVHost* nextHop = routingTable->getNextHop(dest);
-        if(nextHop != nullptr){ //Destination found in table
+        if(nextHop != nullptr){ // Destination found in table
             Link* link = getLinkToHost(nextHop);
             forwardPacket(dsdvPacket, link);
         }
         else {
-            //DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
+            // DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
             dropReceivedPacket(packet);
         }
     }
 }
 
 void DSDVHost::broadcastTable(RoutingTable* table) {
-    DSDVPacket* broadcastPacket = new DSDVPacket(this, nullptr, time); //create packet of BROADCAST type with pointer to table
+    DSDVPacket* broadcastPacket = new DSDVPacket(this, nullptr, time); // Create packet of BROADCAST type with pointer to table
     broadcastPacket->packetType = DSDVPacket::BROADCAST;
     broadcastPacket->routingTable = table;
     broadcastPacket->source = this;
@@ -98,5 +113,5 @@ void DSDVHost::countPacketDrop(Packet* packet) {
 void DSDVHost::deleteRoutes(Host* destination) {
     DSDVHost* dsdvHost = dynamic_cast<DSDVHost*>(destination);
     routingTable->setRouteBroken(dsdvHost);
-    awaitingBroadcast = true; //Routes have broken. Broadcast ASAP
+    awaitingBroadcast = true; // Routes have broken. Broadcast ASAP
 }

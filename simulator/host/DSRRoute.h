@@ -7,15 +7,26 @@
 struct DSRRoute {
     vector<const Host*> route;
 
-    DSRRoute() = default;
+    DSRRoute() {
+        route = {};
+    }
+
+    ~DSRRoute() {
+        // cout << "Destroying DSRRoute " << this << endl;
+    };
 
     DSRRoute(const DSRRoute& other, bool reverse) {
-        if (!reverse) {
-            route = other.route;
-            return;
-        }
+        copyOther(other, reverse);
+    }
+
+    void copyOther(const DSRRoute& other, bool reverse) {
         for (const Host* h : other.route) {
-            route.insert(route.begin(), h);
+            if (reverse) {
+                route.insert(route.begin(), h);
+            }
+            else {
+                route.push_back(h);
+            }
         }
     }
 
@@ -25,6 +36,10 @@ struct DSRRoute {
 
     void empty() {
         route.clear();
+    }
+
+    unsigned size() {
+        return route.size();
     }
 
     // Adds a node to the end of the route
@@ -75,8 +90,11 @@ struct DSRRoute {
     void trimBack(const Host* last) {
         vector<const Host*>::iterator it = route.begin();
         bool hasPassed = false;
-        while (it != route.end() && *it != last) {
-            if (*it == last) hasPassed = true;
+        while (it != route.end()) {
+            if (*it == last) {
+                hasPassed = true;
+                it++;
+            }
             else if (hasPassed)
                 it = route.erase(it);
             else it++;

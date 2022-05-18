@@ -43,4 +43,4 @@ Feature Backlog:
 - DSDV: Keep track of no. changes in routing table => determine when to send table (hosts)
 - TTL
 - GPSR handle isolated host case (RHREdge is null -> put into buffer and try again later)
-- Link buffer "pair" also keeps track of originating source position in order to handle both source and destination mobility. And counter counts upward instead of down to 0.
+

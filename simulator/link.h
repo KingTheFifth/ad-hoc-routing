@@ -22,6 +22,9 @@ class Link {
         bool isBroken;
 
         Link(Host *hostA, Host *hostB, int currTime);
+
+        ~Link();
+
         /**
          * Draws this link as a line between the two hosts of the link.
          */

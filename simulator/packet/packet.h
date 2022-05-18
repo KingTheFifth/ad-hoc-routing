@@ -37,8 +37,13 @@ class Packet {
          */
         virtual Packet* copy() = 0;
 
+        // virtual void draw(QGraphicsScene *scene, int x, int y) const {}
+        
+
     private:
+
         
 };
 
+    void operator delete(void * p);
 #endif

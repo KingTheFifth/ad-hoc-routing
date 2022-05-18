@@ -3,6 +3,21 @@
 
 // void GPSRHost::tick(int currTime)
 
+GPSRHost::~GPSRHost() {
+    while (!transmitBuffer.empty()) {
+        Packet* p = transmitBuffer.front().first;
+        transmitBuffer.pop();
+        dropReceivedPacket(p);
+    }
+
+    while (!receivingBuffer.empty()) {
+        Packet* p = receivingBuffer.front();
+        receivingBuffer.pop();
+        dropReceivedPacket(p);
+    }
+    // Host::~Host();
+}
+
 void GPSRHost::processPacket(Packet* packet) {
     // Either packet has arrived at the destination or the packet is processed and later forwarded
     // DYNAMIC CAST!
