@@ -55,7 +55,9 @@ void RoutingTable::update(RoutingTable* otherTable){
                         break; //Only matching entry found. proceed to next.
                     }
                     if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
-                        //TODO: Check if (*otherEntry)->cost is infinite. That would be a broken link and we need to broadcast that ASAP.
+                        if ((*ourEntry)->cost == std::numeric_limits<int>::infinity() && (*otherEntry)->cost != std::numeric_limits<int>::infinity()){
+                            brokenLinks = true;
+                        }
                         ourEntry = entries.erase(ourEntry) - 1;
                         Row* newRow = new Row((*otherEntry)); //Copy their row
                         newRow->nextHop = neighbourHost; //Update nextHop to neighbour

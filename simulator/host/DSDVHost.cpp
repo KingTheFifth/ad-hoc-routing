@@ -54,7 +54,12 @@ void DSDVHost::processPacket(Packet* packet) {
         int nextHopCost = routingTable->getCost(nextHop);
         if(nextHop != nullptr && nextHopCost != std::numeric_limits<int>::infinity()){ // Destination found in table
             Link* link = getLinkToHost(nextHop);
-            forwardPacket(dsdvPacket, link);
+            if (link != nullptr){
+                forwardPacket(dsdvPacket, link);
+            }
+            else {
+                dropReceivedPacket(packet);
+            }
         }
         else {
             // DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
