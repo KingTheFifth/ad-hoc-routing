@@ -26,6 +26,7 @@ class Packet {
         Host* nextHop;
         int size = PACKET_SIZE;
         int timeSent;
+        int ttl;
         QColor color = Qt::green;
 
         /**
