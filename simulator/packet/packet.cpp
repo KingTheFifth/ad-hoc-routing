@@ -14,4 +14,5 @@ void Packet::copyOther(const Packet& other) {
     nextHop = other.nextHop;
     size = other.size;
     color = other.color;
+    ttl = other.ttl;
 }

@@ -35,6 +35,9 @@ struct StatisticsHandler {
         return string.str();
     }
 
+    /**
+     * Called upon when a data packet has arrived, re-calculating the average delay and the average throughput 
+     */ 
     void addPacketArrival(int delay) {
         unsigned prevDelaySum = avgDelay * dataPacketsArrived;
         double prevThroughputSum = avgThroughput * dataPacketsArrived;
@@ -43,11 +46,17 @@ struct StatisticsHandler {
         avgThroughput = (prevThroughputSum + 1.0 / (double) delay) / (double) dataPacketsArrived;
     }
 
+    /**
+     * Add 'amount' of packets to both amount of routing packets sent as well as total amount of packets sent
+     */ 
     void addRoutingPackets(int amount) {
         packetsSent += amount;
         routingPacketsSent += amount;
     }
 
+    /**
+     * Incremeny the amount of data packets dropped
+     */
     void dropDataPacket() {
         dataPacketsDropped++;
     }

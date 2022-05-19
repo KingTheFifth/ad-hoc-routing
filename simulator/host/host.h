@@ -29,7 +29,7 @@ class Host {
         unsigned id;
 
         /**
-         * 
+         * Discover and create links between all neighbours within the radius of this host
          */
         void discoverNeighbours();
 
@@ -39,7 +39,7 @@ class Host {
         void addNeighbour(Host* host);
 
         /**
-         * 
+         * Delete the neighbour across from 'link'
          */
         void deleteNeighbour(Link* link);
 
@@ -95,17 +95,17 @@ class Host {
         bool isIdle();
 
         /**
-         *
+         * Count the Packet 'packet' as dropped
          */
         virtual void countPacketDrop(Packet* packet) = 0;
 
         /**
-         *
+         * Delete all routes to 'destination'
          */
         virtual void deleteRoutes(Host* destination) = 0;
 
         /**
-         *
+         * Remove all connections to neighbours and release memory of this host
          */
         virtual void die();
 

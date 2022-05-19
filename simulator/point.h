@@ -34,7 +34,7 @@ struct Point {
 	double distanceTo(const Point* that) const;
 
 	/**
-	 * 
+	 * Calculate the slope beteween this point and 'p'
 	 */
 	double slopeTo(const Point* p) const;
 

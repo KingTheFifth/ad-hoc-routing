@@ -34,17 +34,17 @@ class RoutingTable {
         bool brokenLinks = false;
 
         /**
-         *
+         * Get the next host to move to when trying to get to 'destination'
          */
         DSDVHost* getNextHop(const DSDVHost* destination);
 
         /**
-         *
+         * Insert an entry into the routing table of this host
          */
         void insert(DSDVHost* destination, DSDVHost* nextHop, double cost, pair<DSDVHost*, unsigned> sequenceNumber);
 
         /**
-         *
+         * Remove an entry from the routing table of this host
          */
         void remove(DSDVHost* destination);
 
@@ -54,39 +54,39 @@ class RoutingTable {
         void update(RoutingTable* otherTable);
 
         /**
-         *
+         * Update the cost to the destination at row 'row' in the routing table
          */
         void updateCost(Row* row, double cost);
 
         /**
-         *
+         * Get the cost from this host to 'host' out of the routing table
          */
         int getCost(const DSDVHost* host);
 
         /**
-         *
+         * Set the route as broken between this host and 'destination'
          */
         void setRouteBroken(DSDVHost* destination);
 
         /**
-         *
+         * Get a RoutingTable with all changes done to the routing table since last call
          */
         RoutingTable* getChanges();
 
         /**
-         *
+         * Get the number of changes done since last call of getChanges()
          */
         int getNumberOfChanges();
 
         /**
-         *
+         * Get all entries in this routing table
          */
         vector<Row*>* getEntries();
 
     private:
 
         /**
-         *
+         * Get a specific entry of the Host 'host'
          */
         Row* getEntry(const DSDVHost* host);
 };

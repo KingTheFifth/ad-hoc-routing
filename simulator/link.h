@@ -44,7 +44,7 @@ class Link {
         double getLength();
 
         /**
-         *
+         * Add all packets currently on the link to 'resultVector'
          */
         void getPackets(vector<Packet*>* resultVector);
 
