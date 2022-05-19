@@ -50,35 +50,12 @@ HEADERS += \
 FORMS +=
 
 unix {
-    # These are all old and unused copies
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/events.txt $$OUT_PWD$$escape_expand(\n\t))
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/pres_events.txt $$OUT_PWD$$escape_expand(\n\t))
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/events_small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_large_dense.txt $$OUT_PWD$$escape_expand(\n\t))
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_large_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_small_dense.txt $$OUT_PWD$$escape_expand(\n\t))
-    # QMAKE_POST_LINK += $$quote(cp $$PWD/events/ev_small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    
-    # Pure topologies
-    QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/small_dense.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/large_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cp $$PWD/topologies/large_dense.txt $$OUT_PWD$$escape_expand(\n\t))
-
     # Non-move event files
-    QMAKE_POST_LINK += $$quote(cp $$PWD/event_files/no_move/ev_* $$OUT_PWD$$escape_expand(\n\t))
+    #QMAKE_POST_LINK += $$quote(cp $$PWD/event_files/no_move/ev_* $$OUT_PWD$$escape_expand(\n\t))
 
-    # Other event files
-    QMAKE_POST_LINK += $$quote(cp $$PWD/event_files/ev_test_move.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cp $$PWD/event_files/ev_small_dense_A_move.txt $$OUT_PWD$$escape_expand(\n\t))
-}
-win32 {
-    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\events\events.txt $$OUT_PWD$$escape_expand(\n\t))
-    
-    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\small_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\small_dense.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\large_sparse.txt $$OUT_PWD$$escape_expand(\n\t))
-    QMAKE_POST_LINK += $$quote(cmd /c copy /y $$PWD\topologies\large_dense.txt $$OUT_PWD$$escape_expand(\n\t))
+    # Move event files
+    QMAKE_POST_LINK += $$quote(cp $$PWD/event_files/move/ev_* $$OUT_PWD$$escape_expand(\n\t))
+
 }
 
 # Default rules for deployment.

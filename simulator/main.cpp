@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     view->scale(1, -1); // Screen y-axis is inverted (so that y is counted from bottom to top of screen)
     view->setSceneRect(0, 0, width * WINDOW_SCALE, height * WINDOW_SCALE);
     view->show();
-    scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
+    //scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
 
     Protocol protocol = Protocol::DSDV; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     StatisticsHandler* statistics = new StatisticsHandler();
