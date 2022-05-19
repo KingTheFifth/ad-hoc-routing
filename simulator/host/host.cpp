@@ -32,9 +32,6 @@ void Host::deleteNeighbour(Link* link){
     if(link != nullptr){ //Check if link still exists
         deleteRoutes(link->getOtherHost(this));
         if (link->isBroken) { //neighbour has already deleted their side
-            // TODO: Fix so that dropped data packets are counted in the statistics
-            // note: the host subtypes need to do this since only the subtypes know
-            //       if a packet is a data packet or not
             
             vector<Packet*> linkPackets;
             link->getPackets(&linkPackets);
@@ -66,27 +63,15 @@ double Host::distanceTo(Host* host) const {
 }
 
 void Host::draw(QGraphicsScene *scene) const {
-    // return;
     location->draw(scene);
     for (auto& neighbour : neighbours) {
         neighbour->draw(scene);
     }
-
-    // --- debug --- 
-    /*if (perimDrawCountdown > 0) {
-        for(auto& perimeter : perimeterLinks) {
-            perimeter->drawAsPerimeter(scene);
-        }
-    }*/
-    // -------------
 }
 
 void Host::tick(int currTime) {
     int timeDelta = currTime - time;
     time = currTime;
-    // --- debug --- 
-    //if (perimDrawCountdown > 0) perimDrawCountdown--;
-    // -------------
 
     vector<Link*>::iterator link_it = neighbours.begin();
     while (link_it != neighbours.end()) {
@@ -103,7 +88,6 @@ void Host::tick(int currTime) {
     
     // Start processing packet from buffer
     if (processingCountdown <= 0 && !receivingBuffer.empty()) {
-        // cout << "Starting processing" << endl;
 
         Packet* packet = receivingBuffer.front();
         receivingBuffer.pop();
@@ -120,7 +104,18 @@ void Host::tick(int currTime) {
     if (transmitCountdown <= 0 && !transmitBuffer.empty()) {
         pair<Packet*, Link*> packetLink = transmitBuffer.front();
         transmitBuffer.pop();
-        transmitPacket(packetLink.first, packetLink.second);
+
+        // If link was broken while packet was in transmit buffer, drop the packet
+        bool isBroken = true;
+        for (Link* l : neighbours) {
+            if (l == packetLink.second) isBroken = false;
+        }
+        if (!isBroken) {
+            transmitPacket(packetLink.first, packetLink.second);
+        }
+        else {
+            dropReceivedPacket(packetLink.first);
+        }
         transmitCountdown = HOST_TRANSMISSION_DELAY;
     }
     if (transmitCountdown > 0 && !transmitBuffer.empty()) {
@@ -144,16 +139,12 @@ void Host::tick(int currTime) {
             location->x += dx;
 
             discoverNeighbours();
-            //cout << "Moving toward " << *mobilityTarget << ". Currently at " << location << endl;
         }
     }
     
 }
 
 void Host::forwardPacket(Packet *packet, Link *link) {
-    // --- debug --- 
-    //perimDrawCountdown = 20;
-    // -------------
 
     packet->nextHop = link->getOtherHost(this);
     transmitBuffer.push(make_pair(packet, link));

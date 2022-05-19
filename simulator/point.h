@@ -16,7 +16,7 @@ struct Point {
 	/**
 	 * Draw this point
 	 */
-	void draw(QGraphicsScene *scene, bool special = false) const; // TODO: remove bool sometime later
+	void draw(QGraphicsScene *scene) const;
 
 	/**
 	 * Draw a line from this point to 'that'

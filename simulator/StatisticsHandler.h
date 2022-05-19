@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 using namespace std;
 
@@ -23,7 +24,14 @@ struct StatisticsHandler {
         string << "Data packets arrived: " << dataPacketsArrived << "\n";
         string << "Data packets delivery ratio: " << fixed << setprecision(2)<< 100 * ((double) dataPacketsArrived) / ((double) dataPacketsSent) << "%\n";
         string << "Average end-to-end packet delay: " << avgDelay << "\n";
-        string << "Average throughput: " << fixed << setprecision(10) << avgThroughput << "\n";
+        string << "Average throughput: " << fixed << setprecision(10) << avgThroughput << "\n\n";
+        
+        string << "Actual metrics, in order:" << "\n";
+        string << fixed << setprecision(2) << 100 * ((double) dataPacketsArrived) / ((double) dataPacketsSent) << "\n";
+        string << fixed << setprecision(10) << avgThroughput << "\n";
+        string << fixed << setprecision(2) << 100 * ((double) routingPacketsSent) / (double) packetsSent << "\n";
+        string << avgDelay << "\n";
+        
         return string.str();
     }
 

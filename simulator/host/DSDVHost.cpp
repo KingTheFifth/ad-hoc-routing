@@ -4,6 +4,8 @@
 #include "packet/DSDVPacket.h"
 #include <iostream>
 
+//TODO: Detect someone has a broken link to US and broadcast ourself.
+
 DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
             : Host(_statistics, _x, _y, _radius, _time, _id, _hosts) {
                 routingTable = new RoutingTable();
@@ -31,10 +33,11 @@ void DSDVHost::processPacket(Packet* packet) {
     if (type == DSDVPacket::BROADCAST) { // We received a broadcasted routing table. Update ours
         routingTable->update(dsdvPacket->routingTable);
         int numberOfChanges = routingTable->getNumberOfChanges();
-        //TODO: Check if brokenRouteDetected flag in routing table is true.
-        //If so, BYPASS BROADCAST DELAY!!! Info needs to go out asap.
-        //Change currTime >= lastBroadcast + delay to currTime >= nextBroadcast (calculated as currTime + delay when we set it)
-        //TODO: Set brokenRouteDetected to false as soon as we broadcast that info?
+        if(routingTable->brokenLinks){
+            //nextFullBroadcast = 0;
+            awaitingBroadcast = true;
+            routingTable->brokenLinks = false;
+        }
         if (routingTable->entries[0]->hasChanged == true || numberOfChanges > 1){
             awaitingBroadcast = true;
         }
@@ -47,9 +50,9 @@ void DSDVHost::processPacket(Packet* packet) {
             delete dsdvPacket;
             return;
         }
-
         DSDVHost* nextHop = routingTable->getNextHop(dest);
-        if(nextHop != nullptr){ // Destination found in table
+        int nextHopCost = routingTable->getCost(nextHop);
+        if(nextHop != nullptr && nextHopCost != std::numeric_limits<int>::infinity()){ // Destination found in table
             Link* link = getLinkToHost(nextHop);
             forwardPacket(dsdvPacket, link);
         }
@@ -57,12 +60,14 @@ void DSDVHost::processPacket(Packet* packet) {
             // DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
             dropReceivedPacket(packet);
         }
+        //statistics->printHandledPackets();
     }
 }
 
 void DSDVHost::broadcastTable(RoutingTable* table) {
     DSDVPacket* broadcastPacket = new DSDVPacket(this, nullptr, time); // Create packet of BROADCAST type with pointer to table
     broadcastPacket->packetType = DSDVPacket::BROADCAST;
+    broadcastPacket->color = Qt::red;
     broadcastPacket->routingTable = table;
     broadcastPacket->source = this;
     broadcast(broadcastPacket);
@@ -76,8 +81,8 @@ void DSDVHost::broadcastChanges(){
 
 
 bool DSDVHost::shouldBroadcast(int currTime){
-    bool partialBroadcast = currTime - lastBroadcast > BROADCASTDELAY && awaitingBroadcast;
-    bool fullBroadcast = currTime - lastFullBroadcast > FULLBROADCASTDELAY;
+    bool partialBroadcast = currTime > nextBroadcast && awaitingBroadcast;
+    bool fullBroadcast = currTime > nextFullBroadcast;
     return partialBroadcast || fullBroadcast;
 }
 
@@ -85,15 +90,15 @@ bool DSDVHost::shouldBroadcast(int currTime){
 void DSDVHost::tick(int currTime){
     Host::tick(currTime);
     if(shouldBroadcast(currTime)){
-        if(currTime - lastFullBroadcast > FULLBROADCASTDELAY) {
+        if(currTime > nextFullBroadcast) {
             routingTable->entries[0]->sequenceNumber.second += 2;
             broadcastTable(routingTable);
-            lastFullBroadcast = currTime;
+            nextFullBroadcast = currTime + FULLBROADCASTDELAY;
         }
         else {
             broadcastChanges();
         }
-        lastBroadcast = currTime;
+        nextBroadcast = currTime + BROADCASTDELAY;
         awaitingBroadcast = false;
     }
 }

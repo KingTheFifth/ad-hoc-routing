@@ -24,6 +24,7 @@ class EventHandler {
 
     private:
         queue<Event*> events;
+
 };
 
 #endif

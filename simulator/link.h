@@ -2,7 +2,6 @@
 #define LINK_H
 
 #include <utility>
-//#include "host.h"
 #include <QGraphicsScene>
 #include "packet/packet.h"
 #include <vector>
@@ -44,6 +43,9 @@ class Link {
          */
         double getLength();
 
+        /**
+         *
+         */
         void getPackets(vector<Packet*>* resultVector);
 
         /**
@@ -56,9 +58,8 @@ class Link {
          */
         void tick(int currTime);
 
-    private:
         pair<Host*, Host*> hosts;
-        //int length; // To calculate a time delay over the link
+    private:
         int time;
 
         vector<PacketOnLink*> linkBuffer;

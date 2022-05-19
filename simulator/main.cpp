@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     view->show();
     scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
 
-    Protocol protocol = Protocol::DSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
+    Protocol protocol = Protocol::GPSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     bool eventsDone = false;
@@ -68,13 +68,6 @@ int main(int argc, char *argv[])
     int eventDuration = EVENT_DURATION_DEFAULT;
     unordered_map<unsigned, Host*> hosts;
 
-    Host* sender;
-    Host* receiver;
-    if (ONLY_ONE_PACKET) { // DEBUG
-        sender = hosts[2];
-        receiver = hosts[8];
-    }
-
     bool running = true;
     while (running) {
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
@@ -87,8 +80,7 @@ int main(int argc, char *argv[])
 
         eventDuration -= TICK_STEP;
 
-
-        if (ONLY_ONE_PACKET == 0 && eventDuration <= 0) {
+        if (eventDuration <= 0) {
             Event* nextEvent = eventHandler->nextEvent();
             if (!nextEvent) {
                 eventsDone = true;
@@ -100,9 +92,8 @@ int main(int argc, char *argv[])
                         statistics->packetsSent++;
                         statistics->dataPacketsSent++;
                         handleSendEvent(nextEvent, &hosts, protocol, time);
-                        //if (packets % 10 == 0) { 
-                            cout << "Packets: " << packets << endl; // TODO: Remove this
-                        //}
+
+                        cout << "Sent packets: " << packets << endl; // TODO: Remove this
                         break;
                     case Event::MOVE:
                         handleMoveEvent(nextEvent, &hosts);
@@ -118,28 +109,10 @@ int main(int argc, char *argv[])
                 delete nextEvent;
             }
         }
-        else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) { // DEBUG
-            switch (protocol) {
-                case DSDV:
-                    sender->receivePacket(new DSDVPacket(sender, receiver, time));
-                    break;
-                case DSR: 
-                    sender->receivePacket(new DSRPacket(sender, receiver, time));
-                    break;
-                case GPSR:
-                    sender->receivePacket(new GPSRPacket(sender, receiver, time));
-                    break;
-            }
-        }
 
         scene->clear();
         for (auto it : hosts) {
             it.second->draw(scene);
-        }
-        
-        if (ONLY_ONE_PACKET) {
-            // sender->getPos()->draw(scene, true);
-            // receiver->getPos()->draw(scene, true);
         }
 
         view->update();
@@ -165,6 +138,7 @@ void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protoc
 
     Host* h1 = (*hosts)[event->senderId];
     Host* h2 = (*hosts)[event->receiverId];
+
     switch (protocol) {
         case DSDV:
             h1->receivePacket(new DSDVPacket(h1, h2, time));

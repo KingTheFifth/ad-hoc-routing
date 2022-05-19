@@ -43,43 +43,60 @@ void RoutingTable::update(RoutingTable* otherTable){
 
     for(vector<Row*>::iterator otherEntry = otherTable->entries.begin(); otherEntry != otherTable->entries.end(); otherEntry++){
         bool entryFound = false;
-        for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
-            if((*otherEntry)->destination == (*ourEntry)->destination){ //found a matching destination
-                entryFound = true;
-                if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour needs updating regardless
-                    updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
-                    break; //Only matching entry found. proceed to next.
-                }
-                if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
-                    //cout << "other sequence higher" << endl;
-                    //TODO: Newer sequence numbers should always take precedence. Not only if they are shorter.
-                    //TODO: Check if (*otherEntry)->cost is infinite. That would be a broken link and we need to broadcast that ASAP.
-                    if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
-                        //cout << "other route is cheaper" << endl;
+        if((*otherEntry)->destination == this->entries[0]->destination && (*otherEntry)->sequenceNumber.second % 2 == 1){
+            brokenLinks = true;
+        }
+        else{
+            for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
+                if((*otherEntry)->destination == (*ourEntry)->destination){ //found a matching destination
+                    entryFound = true;
+                    if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour needs updating regardless
+                        updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
+                        break; //Only matching entry found. proceed to next.
+                    }
+                    if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
+                        //TODO: Check if (*otherEntry)->cost is infinite. That would be a broken link and we need to broadcast that ASAP.
                         ourEntry = entries.erase(ourEntry) - 1;
                         Row* newRow = new Row((*otherEntry)); //Copy their row
                         newRow->nextHop = neighbourHost; //Update nextHop to neighbour
                         newRow->cost += thisHost->distanceTo(neighbourHost); //Update proper cost (distance)
+
+                        if((*otherEntry)->cost == std::numeric_limits<int>::infinity()){
+                            newRow->cost = std::numeric_limits<int>::infinity();
+                            brokenLinks = true;
+                        }
+
                         entries.push_back(newRow);
                         break;
                     }
+                    else if ((*otherEntry)->sequenceNumber.second == (*ourEntry)->sequenceNumber.second){ //Check if sequence number is same
+                        if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
+                            //cout << "other route is cheaper" << endl;
+                            ourEntry = entries.erase(ourEntry) - 1;
+                            Row* newRow = new Row((*otherEntry)); //Copy their row
+                            newRow->nextHop = neighbourHost; //Update nextHop to neighbour
+                            newRow->cost += thisHost->distanceTo(neighbourHost); //Update proper cost (distance)
+                            entries.push_back(newRow);
+                            break;
+                        }
+                    }
+                    break; //match found and acton taken. Proceed to next entry.
                 }
-                break; //match found and acton taken. Proceed to next entry.
             }
-        }
-        if (!entryFound) {
-            insert((*otherEntry)->destination, neighbourHost, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost), (*otherEntry)->sequenceNumber);
+            if (!entryFound) {
+                insert((*otherEntry)->destination, neighbourHost, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost), (*otherEntry)->sequenceNumber);
+            }
         }
     }
 }
 
 void RoutingTable::setRouteBroken(DSDVHost* destination){
-
     for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
         if((*entry)->nextHop == destination){
             (*entry)->cost = std::numeric_limits<int>::infinity();
             (*entry)->sequenceNumber.second += 1;
             (*entry)->hasChanged = true;
+            brokenLinks = true;
         }
     }
 }
@@ -87,6 +104,16 @@ void RoutingTable::setRouteBroken(DSDVHost* destination){
 void RoutingTable::updateCost(Row* row, double cost){
     row->cost = cost;
     row->hasChanged = true;
+}
+
+int RoutingTable::getCost(const DSDVHost* destination){
+    int cost = std::numeric_limits<int>::infinity();
+    for (vector<Row*>::iterator it = entries.begin(); it != entries.end(); it++){
+        if((*it)->destination == destination){
+            cost = (*it)->cost;
+        }
+    }
+    return cost;
 }
 
 RoutingTable* RoutingTable::getChanges(){

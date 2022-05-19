@@ -13,6 +13,5 @@ void Packet::copyOther(const Packet& other) {
     destination = other.destination;
     nextHop = other.nextHop;
     size = other.size;
+    color = other.color;
 }
-
-void operator delete(void * p) {}

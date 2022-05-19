@@ -26,6 +26,7 @@ class Packet {
         Host* nextHop;
         int size = PACKET_SIZE;
         int timeSent;
+        QColor color = Qt::green;
 
         /**
          * Copy 'other' and set other's values to this packet's values
@@ -37,13 +38,9 @@ class Packet {
          */
         virtual Packet* copy() = 0;
 
-        // virtual void draw(QGraphicsScene *scene, int x, int y) const {}
-        
-
     private:
 
         
 };
 
-    void operator delete(void * p);
 #endif

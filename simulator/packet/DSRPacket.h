@@ -20,8 +20,6 @@ struct DSRPacket : public Packet {
      */
     Packet* copy() override;
 
-    //virtual void draw(QGraphicsScene *scene, int x, int y) const;
-
     enum PacketType {RREQ, RREP, RERR, OTHER};
     unsigned requestID;
     PacketType packetType;

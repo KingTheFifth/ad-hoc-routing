@@ -11,14 +11,18 @@ struct DSRRoute {
         route = {};
     }
 
-    ~DSRRoute() {
-        // cout << "Destroying DSRRoute " << this << endl;
-    };
+    ~DSRRoute() {};
 
+    /**
+     *
+     */
     DSRRoute(const DSRRoute& other, bool reverse) {
         copyOther(other, reverse);
     }
 
+    /**
+     *
+     */
     void copyOther(const DSRRoute& other, bool reverse) {
         for (const Host* h : other.route) {
             if (reverse) {
@@ -30,32 +34,47 @@ struct DSRRoute {
         }
     }
 
+    /**
+     *
+     */
     bool isEmpty() {
         return route.empty();
     }
 
+    /**
+     *
+     */
     void empty() {
         route.clear();
     }
 
+    /**
+     *
+     */
     unsigned size() {
         return route.size();
     }
 
-    // Adds a node to the end of the route
+    /**
+     * Adds a node to the end of the route
+     */
     void addNode(const Host* node) {
         route.push_back(node);
     }
 
-    // Adds the route of another DSRRoute to the end of this route
+    /**
+     * Adds the route of another DSRRoute to the end of this route
+     */
     void addRoute(const DSRRoute* other) {
         for (const Host* h : other->route) {
             route.push_back(h);
         }
     }
 
-    // Returns true if the given host is somehow reachable through this route. Target 
-    // does not necessarily have to be the last node of the route
+    /**
+     * Returns true if the given host is somehow reachable through this route. Target 
+     * does not necessarily have to be the last node of the route
+     */
     bool hasTarget(const Host* target) const {
         for (const Host* host : route) {
             if (host == target) return true;
@@ -63,9 +82,10 @@ struct DSRRoute {
         return false;
     }
 
-    // Returns the next hop host from the given source host according to this route.
-    // Works under the assumption that a route does not necessarily start with the 
-    // node that is forwarding a packet along a route.
+    /** Returns the next hop host from the given source host according to this route.
+     * Works under the assumption that a route does not necessarily start with the 
+     * node that is forwarding a packet along a route.
+     */
     const Host* getNextHop(const Host* source, bool reverse) {
         for (vector<const Host*>::const_iterator it = route.begin(); it != route.end(); it++) {
             if(*it == source) {
@@ -80,6 +100,9 @@ struct DSRRoute {
         return nullptr;
     }
 
+    /**
+     *
+     */
     void trimFront(const Host* first) {
         vector<const Host*>::iterator it = route.begin();
         while (it != route.end() && *it != first) {
@@ -87,6 +110,9 @@ struct DSRRoute {
         }
     }
 
+    /**
+     *
+     */
     void trimBack(const Host* last) {
         vector<const Host*>::iterator it = route.begin();
         bool hasPassed = false;
