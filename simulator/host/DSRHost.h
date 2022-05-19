@@ -10,14 +10,15 @@ struct DSRHost : public Host {
     public:
         DSRHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
             : Host(_statistics, _x, _y, _radius, _time, _id, _hosts), requestIDCounter(0) {}
-        // void tick(int currTime);
 
         ~DSRHost();
 
+        /**
+         *
+         */
         void die();
 
     protected:
-
 
         /**
          * 
@@ -29,13 +30,15 @@ struct DSRHost : public Host {
          */
         void dropReceivedPacket(Packet* packet);
 
-
     private:
         unsigned requestIDCounter;
         vector<DSRRoute*> routes;
         vector<pair<DSRPacket*, int>> waitingForRouteBuffer;
         vector<pair<const Host*, unsigned>> recentlySeenRequests;
 
+        /**
+         *
+         */
         void tick(int currTime);
 
         /**
@@ -58,13 +61,26 @@ struct DSRHost : public Host {
          */
         bool shouldBeDropped(const DSRPacket* packet);
 
+        /**
+         *
+         */
         void countPacketDrop(Packet* packet);
 
+        /**
+         *
+         */
         void deleteRoutes(Host* destination);
 
+        /**
+         *
+         */
         void sendRERR(DSRPacket* packet);
 
+        /**
+         *
+         */
         void handleRERR(DSRPacket* packet);
+
 };
 
 #endif

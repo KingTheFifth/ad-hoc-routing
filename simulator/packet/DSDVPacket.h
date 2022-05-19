@@ -7,7 +7,7 @@
 struct DSDVPacket : public Packet {
     DSDVPacket() = default;
 
-    DSDVPacket(const Host* _source, const Host* _destination, int _time, int _id = -1);
+    DSDVPacket(const Host* _source, const Host* _destination, int _time);
 
     virtual ~DSDVPacket() = default;
     enum PacketType {BROADCAST, OTHER};

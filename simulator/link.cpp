@@ -2,12 +2,10 @@
 #include "host/host.h"
 #include <QGraphicsRectItem>
 #include "constants.h"
-#include "packet/GPSRPacket.h" // debug
 
 Link::Link(Host *hostA, Host *hostB, int currTime) {
     hosts.first = hostA;
     hosts.second = hostB;
-    // length = hostA->getPos()->distanceTo(hostB->getPos()) / WINDOW_SCALE;
     time = currTime;
     isBroken = false;
 }
@@ -22,8 +20,6 @@ Link::~Link() {
 void Link::draw(QGraphicsScene *scene) { 
     hosts.first->getPos()->drawTo(hosts.second->getPos(), scene);
     for (vector<PacketOnLink*>::iterator it = linkBuffer.begin(); it != linkBuffer.end(); it++) {
-        // TODO: extract into method :)
-
         Point* destination = (*it)->packet->nextHop->getPos();
         Point* source = getOtherHost((*it)->packet->nextHop)->getPos();
         double progress = (double) (*it)->timeOnLink * LINK_SPEED / (double) (*it)->origin->distanceTo((destination));
@@ -43,21 +39,11 @@ void Link::draw(QGraphicsScene *scene) {
             x += dx * progress;
             y += dy * progress;
         }
-        QGraphicsRectItem *item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 6 * WINDOW_SCALE, 6 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
-        //item->setBrush(QBrush(QColor(Qt::blue)));
+
+        QGraphicsRectItem *item;
+        item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 6 * WINDOW_SCALE, 6 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
         item->setBrush(QBrush(QColor((*it)->packet->color)));
         scene->addItem(item);
-
-        // Draws packets, which only has implementation for DSR Packets that draw packet type text
-        // (*it)->packet->draw(scene, x, y);
-
-        // --- debug --- 
-        // GPSRPacket* gpsrPacket = (GPSRPacket*) (*it)->packet;
-        // const Point* d = gpsrPacket->destPos;
-        // const Point* failure = gpsrPacket->failurePos;
-        // if (d && failure)
-        //     failure->drawToAsPerimeter(d, scene, true);
-        // -------------
         
     }
 }

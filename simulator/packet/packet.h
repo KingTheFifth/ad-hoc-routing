@@ -14,7 +14,7 @@ class Link;
 class Packet {
     public:
         Packet() {}
-        Packet(const Host* _source, const Host* _destination, int _time, int _id = -1);
+        Packet(const Host* _source, const Host* _destination, int _time);
 
         // Copy constructor
         Packet(const Packet& other);
@@ -26,7 +26,6 @@ class Packet {
         Host* nextHop;
         int size = PACKET_SIZE;
         int timeSent;
-        int id;
         QColor color = Qt::green;
 
         /**
@@ -39,13 +38,9 @@ class Packet {
          */
         virtual Packet* copy() = 0;
 
-        // virtual void draw(QGraphicsScene *scene, int x, int y) const {}
-        
-
     private:
 
         
 };
 
-    void operator delete(void * p);
 #endif

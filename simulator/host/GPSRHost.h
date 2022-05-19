@@ -12,6 +12,7 @@ struct GPSRHost : public Host {
         ~GPSRHost();
 
     protected:
+
         /**
          * 
          */
@@ -39,9 +40,16 @@ struct GPSRHost : public Host {
          */
         void dropReceivedPacket(Packet* packet);
 
+        /**
+         *
+         */
         void countPacketDrop(Packet* packet);
 
+        /**
+         *
+         */
         void deleteRoutes(Host* destination);
+
 };
 
 #endif

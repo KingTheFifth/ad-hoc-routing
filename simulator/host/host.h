@@ -18,7 +18,7 @@ class Link;
 class Host {
     public:
         Host(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
-        : statistics(_statistics), radius(_radius), id(_id), time(_time), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0), hosts(_hosts) {
+        : id(_id), statistics(_statistics), radius(_radius), time(_time), mobilityTarget(nullptr), processingCountdown(HOST_PROCESSING_DELAY), transmitCountdown(0), hosts(_hosts) {
             location = new Point(_x, _y);
         }
 
@@ -99,9 +99,16 @@ class Host {
          */
         virtual void countPacketDrop(Packet* packet) = 0;
 
+        /**
+         *
+         */
         virtual void deleteRoutes(Host* destination) = 0;
 
+        /**
+         *
+         */
         virtual void die();
+
     protected:
         StatisticsHandler* statistics;
         Point* location;
@@ -112,10 +119,6 @@ class Host {
         int processingCountdown;
         int transmitCountdown;
         unordered_map<unsigned, Host*>* hosts;
-
-        // debug
-        // int perimDrawCountdown = 0;
-        // vector<Link*> perimeterLinks;
 
         /**
          * Sends a copy of 'packet' to every neighbour of this host.

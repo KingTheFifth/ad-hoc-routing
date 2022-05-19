@@ -63,7 +63,11 @@ class DSDVHost : public Host {
          */
         void countPacketDrop(Packet* packet);
 
+        /**
+         *
+         */
         void deleteRoutes(Host* destination);
+
 };
 
 #endif

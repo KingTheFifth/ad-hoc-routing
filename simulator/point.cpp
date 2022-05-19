@@ -18,18 +18,11 @@ double Point::distanceTo(const Point* that) const
     return std::sqrt(dx*dx + dy*dy);
 }
 
-void Point::draw(QGraphicsScene *scene, bool special) const
+void Point::draw(QGraphicsScene *scene) const
 {
-    if (special) {
-        QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 5 * WINDOW_SCALE, 5 * WINDOW_SCALE);
-        item->setBrush(QBrush(QColor(0, 255, 255)));
-        scene->addItem(item);
-    }
-    else {
-        QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE);
-        item->setBrush(QBrush(QColor(255, 0, 0)));
-        scene->addItem(item);
-    }
+    QGraphicsEllipseItem *item = new QGraphicsEllipseItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 3 * WINDOW_SCALE, 3 * WINDOW_SCALE);
+    item->setBrush(QBrush(QColor(255, 0, 0)));
+    scene->addItem(item);
 }
 
 void Point::drawTo(Point* that, QGraphicsScene *scene) const
@@ -42,7 +35,6 @@ void Point::drawToAsPerimeter(const Point* that, QGraphicsScene *scene, bool dra
 {
     QGraphicsLineItem *item = new QGraphicsLineItem(x * WINDOW_SCALE, y * WINDOW_SCALE, that->x * WINDOW_SCALE, that->y * WINDOW_SCALE);
     QPen pen;
-    // pen.setDashPattern(dashPattern());
     if (drawxD) pen.setColor(Qt::red);
     else pen.setColor(Qt::green);
     pen.setWidth(5);

@@ -1,8 +1,6 @@
 #include "GPSRHost.h"
 #include "link.h"
 
-// void GPSRHost::tick(int currTime)
-
 GPSRHost::~GPSRHost() {
     while (!transmitBuffer.empty()) {
         Packet* p = transmitBuffer.front().first;
@@ -20,7 +18,6 @@ GPSRHost::~GPSRHost() {
 
 void GPSRHost::processPacket(Packet* packet) {
     // Either packet has arrived at the destination or the packet is processed and later forwarded
-    // DYNAMIC CAST!
     
     GPSRPacket* gpsrPacket = (GPSRPacket*) packet;
     if (location->distanceTo(gpsrPacket->destPos) < CLOSE_THRESHOLD) {
@@ -35,7 +32,6 @@ void GPSRHost::processPacket(Packet* packet) {
             forwardPacket(gpsrPacket, l);
         }
         else {
-            //cout << "Dropping packet " << gpsrPacket << ", due to perimeter loop" << endl;
             dropReceivedPacket(gpsrPacket);
         }
     }
@@ -71,14 +67,12 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
 
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        //getPerimeterLinks(&perimeterLinks); // debug
         nextHopLink = getRHREdge(destination, &perimeter);
         packet->firstEdgeInPerim = make_pair(this, nextHopLink->getOtherHost(this));
     }
     else if (packet->mode == GPSRPacket::Perimeter) {
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
-        //getPerimeterLinks(&perimeterLinks); // debug
         Link* RHREdge = getRHREdge(previous, &perimeter);
         
         // Drop packet if host is isolated
@@ -163,7 +157,7 @@ void GPSRHost::dropReceivedPacket(Packet* packet) {
     delete packet;
 }
 
-void GPSRHost::countPacketDrop(Packet* packet) {
+void GPSRHost::countPacketDrop(Packet* packet) { // GPSR is too elite for parameters
     statistics->dropDataPacket();
 }
 

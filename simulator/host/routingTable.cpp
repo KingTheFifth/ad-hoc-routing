@@ -91,7 +91,6 @@ void RoutingTable::update(RoutingTable* otherTable){
 }
 
 void RoutingTable::setRouteBroken(DSDVHost* destination){
-
     for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
         if((*entry)->nextHop == destination){
             (*entry)->cost = std::numeric_limits<int>::infinity();

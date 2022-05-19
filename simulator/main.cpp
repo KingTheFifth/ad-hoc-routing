@@ -23,7 +23,7 @@ using namespace std;
 
 enum Protocol {DSDV, DSR, GPSR};
 
-void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time, int packets);
+void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time);
 void handleMoveEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
 void handleJoinEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, StatisticsHandler* statistics, int radius, int time, unsigned id);
 void handleDisconnectEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     view->show();
     scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
 
-    Protocol protocol = Protocol::DSDV; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
+    Protocol protocol = Protocol::GPSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     bool eventsDone = false;
@@ -68,13 +68,6 @@ int main(int argc, char *argv[])
     int eventDuration = EVENT_DURATION_DEFAULT;
     unordered_map<unsigned, Host*> hosts;
 
-    Host* sender;
-    Host* receiver;
-    if (ONLY_ONE_PACKET) { // DEBUG
-        sender = hosts[2];
-        receiver = hosts[8];
-    }
-
     bool running = true;
     while (running) {
         chrono::time_point<std::chrono::system_clock> before = chrono::system_clock::now();
@@ -87,8 +80,7 @@ int main(int argc, char *argv[])
 
         eventDuration -= TICK_STEP;
 
-
-        if (ONLY_ONE_PACKET == 0 && eventDuration <= 0) {
+        if (eventDuration <= 0) {
             Event* nextEvent = eventHandler->nextEvent();
             if (!nextEvent) {
                 eventsDone = true;
@@ -99,10 +91,9 @@ int main(int argc, char *argv[])
                         packets++;
                         statistics->packetsSent++;
                         statistics->dataPacketsSent++;
-                        handleSendEvent(nextEvent, &hosts, protocol, time, packets);
-                        //if (packets % 10 == 0) { 
-                            //cout << "Packets: " << packets << endl; // TODO: Remove this
-                        //}
+                        handleSendEvent(nextEvent, &hosts, protocol, time);
+
+                        cout << "Sent packets: " << packets << endl; // TODO: Remove this
                         break;
                     case Event::MOVE:
                         handleMoveEvent(nextEvent, &hosts);
@@ -118,28 +109,10 @@ int main(int argc, char *argv[])
                 delete nextEvent;
             }
         }
-        else if (ONLY_ONE_PACKET == 1 && time == TICK_STEP) { // DEBUG
-            switch (protocol) {
-                case DSDV:
-                    sender->receivePacket(new DSDVPacket(sender, receiver, time));
-                    break;
-                case DSR: 
-                    sender->receivePacket(new DSRPacket(sender, receiver, time));
-                    break;
-                case GPSR:
-                    sender->receivePacket(new GPSRPacket(sender, receiver, time));
-                    break;
-            }
-        }
 
         scene->clear();
         for (auto it : hosts) {
             it.second->draw(scene);
-        }
-        
-        if (ONLY_ONE_PACKET) {
-            // sender->getPos()->draw(scene, true);
-            // receiver->getPos()->draw(scene, true);
         }
 
         view->update();
@@ -160,14 +133,15 @@ int main(int argc, char *argv[])
     return a.exec();
 }
 
-void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time, int packets) {
+void handleSendEvent(Event* event, unordered_map<unsigned, Host*>* hosts, Protocol protocol, int time) {
     // TODO: consider the size of data, send multiple packets (if we change throughput to bytes instead of packets)
 
     Host* h1 = (*hosts)[event->senderId];
     Host* h2 = (*hosts)[event->receiverId];
+
     switch (protocol) {
         case DSDV:
-            h1->receivePacket(new DSDVPacket(h1, h2, time, packets));
+            h1->receivePacket(new DSDVPacket(h1, h2, time));
             break;
         case DSR: 
             h1->receivePacket(new DSRPacket(h1, h2, time));
