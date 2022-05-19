@@ -2,7 +2,7 @@
 #include "host/host.h"
 
 Packet::Packet(const Host* _source, const Host* _destination, int _time)
-    : source(_source), destination(_destination), timeSent(_time) {}
+    : source(_source), destination(_destination), timeSent(_time), ttl(TTL) {}
 
 Packet::Packet(const Packet& other) {
     copyOther(other);

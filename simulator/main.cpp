@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     QGraphicsView *view = new QGraphicsView();
     QGraphicsScene *scene = new QGraphicsScene();
 
-    string eventsFilename = "ev_small_dense_move.txt"; // THIS IS WHERE YOU CHANGE TOPOLOGY/EVENT SETS AAAAAAAAAAAAAAAAAHHHHHHHH
+    string eventsFilename = "ev_large_sparse_A_move.txt"; // THIS IS WHERE YOU CHANGE TOPOLOGY/EVENT SETS AAAAAAAAAAAAAAAAAHHHHHHHH
     ifstream input;
     input.open(eventsFilename);
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     view->show();
     //scene->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
 
-    Protocol protocol = Protocol::DSDV; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
+    Protocol protocol = Protocol::GPSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     StatisticsHandler* statistics = new StatisticsHandler();
     EventHandler* eventHandler = new EventHandler();
     bool eventsDone = false;

@@ -68,7 +68,12 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
         vector<Link*> perimeter;
         getPerimeterLinks(&perimeter);
         nextHopLink = getRHREdge(destination, &perimeter);
-        packet->firstEdgeInPerim = make_pair(this, nextHopLink->getOtherHost(this));
+        if(nextHopLink){
+            packet->firstEdgeInPerim = make_pair(this, nextHopLink->getOtherHost(this));
+        } else {
+            return nullptr;
+        }
+
     }
     else if (packet->mode == GPSRPacket::Perimeter) {
         vector<Link*> perimeter;
@@ -81,12 +86,13 @@ Link* GPSRHost::GPSR(GPSRPacket* packet) {
 
         if (
             Lf &&
-            (!packet->destLineIntersect ||
+            (!(packet->destLineIntersect) ||
             Lf->distanceTo(destination) < packet->destLineIntersect->distanceTo(destination))
             ) {
             packet->destLineIntersect = Lf;
             Point* newRHRReference = RHREdge->getOtherHost(this)->getPos();
             RHREdge = getRHREdge(newRHRReference, &perimeter);
+            if(RHREdge == nullptr){ return nullptr; }
             packet->firstEdgeInPerim = make_pair(this, RHREdge->getOtherHost(this));
         }
 

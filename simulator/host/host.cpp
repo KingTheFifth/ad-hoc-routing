@@ -155,12 +155,12 @@ void Host::transmitPacket(Packet *packet, Link *link) {
 }
 
 void Host::receivePacket(Packet* packet) {
-    if (receivingBuffer.size()*PACKET_SIZE >= HOST_BUFFER_SIZE) {
+    packet->ttl -= 1;
+    if (receivingBuffer.size()*PACKET_SIZE >= HOST_BUFFER_SIZE || packet->ttl <= 0) {
         // Drop packet
         // delete packet;
         dropReceivedPacket(packet);
     } else {
-
         receivingBuffer.push(packet);
     }
 }

@@ -96,8 +96,12 @@ void DSRHost::processPacket(Packet* packet) {
             // Send the RREP along the reversed route
 
             Link* nextHop = getLinkToHost(RREP->route.getNextHop(this, true));
-            forwardPacket(RREP, nextHop);
-            statistics->addRoutingPackets(1);
+            if(nextHop){
+                forwardPacket(RREP, nextHop);
+                statistics->addRoutingPackets(1);
+            } else {
+                dropReceivedPacket(RREP);
+            }
         }
         else { // Not yet arrived
             DSRRoute* cachedRoute = getCachedRoute(dsrPacket->destination);
@@ -146,11 +150,14 @@ void DSRHost::processPacket(Packet* packet) {
                 if (it->first->destination == dsrPacket->source) { // If 'it' is the packet we have been waiting to send
                     it->first->route.copyOther(dsrPacket->route, false);
                     Link* nextHop = getLinkToHost(it->first->route.getNextHop(this, false));
-                    forwardPacket(it->first, nextHop);
-                    waitingForRouteBuffer.erase(it);
-                    routes.push_back(new DSRRoute(dsrPacket->route));
-
-                    delete dsrPacket;
+                    if(nextHop){
+                        forwardPacket(it->first, nextHop);
+                        waitingForRouteBuffer.erase(it);
+                        routes.push_back(new DSRRoute(dsrPacket->route));
+                        delete dsrPacket;
+                    } else {
+                        dropReceivedPacket(dsrPacket);
+                    }
                     return; // TODO: Perhaps remove this? -> All packets going to the same destination are sent
                 }
             }

@@ -22,3 +22,5 @@
 
 #define EVENT_DURATION_DEFAULT 40
 #define EVENT_DURATION_JOIN 10
+
+#define TTL 300
