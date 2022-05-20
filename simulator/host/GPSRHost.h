@@ -14,7 +14,7 @@ struct GPSRHost : public Host {
     protected:
 
         /**
-         * 
+         * Specific processPacket function for GPSR
          */
         void processPacket(Packet* packet) override;
 
@@ -31,7 +31,7 @@ struct GPSRHost : public Host {
         void getPerimeterLinks(vector<Link*>* result);
 
         /**
-         * Return the link that is the Right Hand Rule edge
+         * Return the link that is the Right Hand Rule edge. Can return null if this host is isolated
          */
         Link* getRHREdge(const Point* referencePoint, vector<Link*>* perimeterLinks) const;
 
@@ -41,12 +41,12 @@ struct GPSRHost : public Host {
         void dropReceivedPacket(Packet* packet);
 
         /**
-         *
+         * Count 'packet' as dropped
          */
         void countPacketDrop(Packet* packet);
 
         /**
-         *
+         * Not used in GPSR
          */
         void deleteRoutes(Host* destination);
 

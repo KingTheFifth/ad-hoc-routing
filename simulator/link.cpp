@@ -18,12 +18,16 @@ Link::~Link() {
 }
 
 void Link::draw(QGraphicsScene *scene) { 
-    hosts.first->getPos()->drawTo(hosts.second->getPos(), scene);
+    hosts.first->getPos()->drawTo(hosts.second->getPos(), scene); // Draw out the link
+
+    // For all packets on the link
     for (vector<PacketOnLink*>::iterator it = linkBuffer.begin(); it != linkBuffer.end(); it++) {
+        // Calculate the progress the packet has made to the other host
         Point* destination = (*it)->packet->nextHop->getPos();
         Point* source = getOtherHost((*it)->packet->nextHop)->getPos();
         double progress = (double) (*it)->timeOnLink * LINK_SPEED / (double) (*it)->origin->distanceTo((destination));
 
+        // Calculate the current position of the packet
         double y = source->y;
         double x = source->x;
         double dx = destination->x - x;
@@ -41,14 +45,10 @@ void Link::draw(QGraphicsScene *scene) {
         }
 
         QGraphicsRectItem *item;
-        item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 6 * WINDOW_SCALE, 6 * WINDOW_SCALE); // TODO: This might be a memory leak, look up details
+        item = new QGraphicsRectItem(x * WINDOW_SCALE, y * WINDOW_SCALE, 6 * WINDOW_SCALE, 6 * WINDOW_SCALE);
         item->setBrush(QBrush(QColor((*it)->packet->color)));
-        scene->addItem(item);
-        
+        scene->addItem(item); // Draw the packet on the link
     }
-}
-void Link::drawAsPerimeter(QGraphicsScene *scene) { 
-    hosts.first->getPos()->drawToAsPerimeter(hosts.second->getPos(), scene, false);
 }
 
 Host* Link::getOtherHost(const Host *currentHost) {
@@ -56,7 +56,7 @@ Host* Link::getOtherHost(const Host *currentHost) {
 }
 
 double Link::getLength() {
-    if (isBroken) return std::numeric_limits<double>::infinity();
+    if (isBroken) return std::numeric_limits<double>::infinity(); // If the link is broken, it has no valid length
     return hosts.first->getPos()->distanceTo(hosts.second->getPos());
 }
 
@@ -67,7 +67,7 @@ void Link::getPackets(vector<Packet*>* resultVector) {
 }
 
 void Link::forwardPacket(Packet *packet) {
-    PacketOnLink* packetOnLink = new PacketOnLink();
+    PacketOnLink* packetOnLink = new PacketOnLink(); // Create a PacketOnLink object for 'packet'
     packetOnLink->packet = packet;
     packetOnLink->timeOnLink = 0;
     packetOnLink->origin = getOtherHost(packet->nextHop)->getPos();
@@ -75,17 +75,20 @@ void Link::forwardPacket(Packet *packet) {
 }
 
 void Link::tick(int currTime) {
+    // Update the time for this link
     int timeDelta = currTime - time;
-    if (timeDelta <= 0) return;
+    if (timeDelta <= 0) return; // If there is no difference in time, the simulation have not yet moved forward
     time = currTime;
     
     vector<PacketOnLink*>::iterator it = linkBuffer.begin();
-    while (it != linkBuffer.end()) {
+    while (it != linkBuffer.end()) { // For all packets on the link
         PacketOnLink* p = *it;
         p->timeOnLink += timeDelta;
-        if (p->timeOnLink * LINK_SPEED >= p->origin->distanceTo(p->packet->nextHop->getPos())) {
-            p->packet->nextHop->receivePacket(p->packet);
-            it = linkBuffer.erase(it);
+
+        // If the packet has reached its destination
+        if (p->timeOnLink * LINK_SPEED >= p->origin->distanceTo(p->packet->nextHop->getPos())) { 
+            p->packet->nextHop->receivePacket(p->packet); // Receive the packet on the other end of the link
+            it = linkBuffer.erase(it); // Remove the PacketOnLink object created for this packet
             delete p;
             continue;
         }

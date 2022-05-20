@@ -28,10 +28,6 @@ class Link {
          * Draws this link as a line between the two hosts of the link.
          */
         void draw(QGraphicsScene *scene);
-        /**
-         * Draws this link as a line between the two hosts of the link, with special styling
-         */
-        void drawAsPerimeter(QGraphicsScene *scene);
 
         /**
          * Get the opposing host of 'currentHost' on this link

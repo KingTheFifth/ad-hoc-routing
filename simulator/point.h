@@ -24,11 +24,6 @@ struct Point {
 	void drawTo(Point* that, QGraphicsScene *scene) const;
 
 	/**
-	 * Draw a line from this point to 'that'
-	 */
-	void drawToAsPerimeter(const Point* that, QGraphicsScene *scene, bool drawxD) const;
-
-	/**
 	 * Get the distance from this point to 'that'
 	 */
 	double distanceTo(const Point* that) const;

@@ -26,7 +26,7 @@ class Packet {
         Host* nextHop;
         int size = PACKET_SIZE;
         int timeSent;
-        int ttl;
+        int ttl; // Time To Live, a measurement of how many hops a packet can do before getting dropped
         QColor color = Qt::green;
 
         /**
