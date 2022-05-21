@@ -2,45 +2,32 @@
 
 Ad hoc routing simulator for DSDV, DSR and GPSR in C++.
 
-Simulator Code:
-- C++-+
-- done at the latest by April 27
-- Specify topology in txt file, one line represents an entry where entry values are separated by space
-- Super fancy function that loads and creates the topology from a given file ("Wow!")
-- Visual representation of the topology (maybe with animations?)
-- Links as objects probably => greater control over jitter and links breaking
-- Packets as objects, contains (size of) data, type (routing or data transfer), source and destination node
+Routing protocol, as well as event file is set in main.cpp. There exists 5 event files, A, B, C, D, and
+E for each of the four existing topologies seen below. Each event file consists of a combination of event
+types, where all hosts join the network through join events. The different event types can be seen below.
+A simulation ends when all events have been processed and all data packets sent through events have either
+arrived at their destination, or have been dropped for any reason. After the simulation ends, the metrics
+seen below will be printed in order after the line "Actual metrics, in order:". Additional, raw metrics are
+also printed above this line.
 
 Topologies:
-- Homogeneous (for now)
-- Sparse
-- Crowded
+- Small, sparse
+- Small, dense
+- Large, sparse
+- Large, dense
 
 Metrics:
+- Packet Delivery Ratio
 - Throughput
 - Routing overhead
 - Average packet delay
-- Packet Delivery Ratio
 
-Events:
-- host P send A bytes to host Q              :   0 <P> <Q> <bytes>
-- host join at (x, y)                        :   1 <x> <y>
-- host P disconnect                          :   2 <P>
-- host P move to (x, y)                      :   3 <P> <x> <y>
-
-Implemented Features:
-- Drawing packets (time left on packet relative to length of link)
-- Links (and hosts?) keep track of the time stamp they were last ticked (global clock). When a link is ticked, it is given the
-  current time stamp and calculates a time delta compared to its own time stamp. If the delta is greater than 0
-  then the link updates its time stamp and does the ticky tick thingy ٩(◕‿◕)۶  (๑˃ᴗ˂)ﻭ (o˘◡˘o) ヽ(°〇°)ﾉ
-- Unique host ID (incremental?)
-
-Feature Backlog:
-- Fix time units. What is a time unit? What is time? What is life? What is? What? W?
-- Packet sizes
-- Destructors
-- Deallocate allocated memory where needed (link gets broken, end of simulation) => NO MEMORY LEAKS >:(
-- DSDV: Keep track of no. changes in routing table => determine when to send table (hosts)
-- TTL
-- GPSR handle isolated host case (RHREdge is null -> put into buffer and try again later)
-
+Event types:
+- 0: host P sends a packet to host Q of size A bytes
+  - Input for this would look like: 0 P Q A
+- 1: host join at (x, y)
+  - Input for this would look like: 1 x y
+- 2: host P disconnect 
+  - Input for this would look like: 2 P
+- 3: host P move to (x, y) 
+  - Input for this would look like: 3 P x y
