@@ -4,8 +4,6 @@
 #include "packet/DSDVPacket.h"
 #include <iostream>
 
-//TODO: Detect someone has a broken link to US and broadcast ourself.
-
 DSDVHost::DSDVHost(StatisticsHandler* _statistics, double _x, double _y, int _radius, int _time, unsigned _id, unordered_map<unsigned, Host*>* _hosts)
             : Host(_statistics, _x, _y, _radius, _time, _id, _hosts) {
                 routingTable = new RoutingTable();
@@ -24,7 +22,6 @@ DSDVHost::~DSDVHost() {
         receivingBuffer.pop();
         dropReceivedPacket(p);
     }
-    // Host::~Host();
 }
 
 void DSDVHost::processPacket(Packet* packet) {
@@ -34,7 +31,6 @@ void DSDVHost::processPacket(Packet* packet) {
         routingTable->update(dsdvPacket->routingTable);
         int numberOfChanges = routingTable->getNumberOfChanges();
         if(routingTable->brokenLinks){
-            //nextFullBroadcast = 0;
             awaitingBroadcast = true;
             routingTable->brokenLinks = false;
         }
@@ -44,28 +40,26 @@ void DSDVHost::processPacket(Packet* packet) {
     }
     else { // Normal data packet.
         const DSDVHost* dest = (DSDVHost*)(dsdvPacket->destination);
-        if (dest == this) {
+        if (dest == this) { // If this is the intended destination
             int delay = time - dsdvPacket->timeSent;
-            statistics->addPacketArrival(delay);
+            statistics->addPacketArrival(delay); // Count packet as arrived
             delete dsdvPacket;
             return;
         }
         DSDVHost* nextHop = routingTable->getNextHop(dest);
         int nextHopCost = routingTable->getCost(nextHop);
-        if(nextHop != nullptr && nextHopCost != std::numeric_limits<int>::infinity()){ // Destination found in table
+        if(nextHop && nextHopCost != std::numeric_limits<int>::infinity()){ // If the destination is found in this hosts table
             Link* link = getLinkToHost(nextHop);
-            if (link != nullptr){
+            if (link) { // If link is not broken
                 forwardPacket(dsdvPacket, link);
             }
             else {
                 dropReceivedPacket(packet);
             }
         }
-        else {
-            // DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar. Drop the packet.
-            dropReceivedPacket(packet);
+        else { // DSDV does not handle cases where no destination is found, since all hosts 'should' be familiar
+            dropReceivedPacket(packet); // Drop the packet
         }
-        //statistics->printHandledPackets();
     }
 }
 
@@ -75,6 +69,8 @@ void DSDVHost::broadcastTable(RoutingTable* table) {
     broadcastPacket->color = Qt::red;
     broadcastPacket->routingTable = table;
     broadcastPacket->source = this;
+
+    // Broadcast to all neighbours
     broadcast(broadcastPacket);
     statistics->addRoutingPackets(neighbours.size());
 }
@@ -94,6 +90,7 @@ bool DSDVHost::shouldBroadcast(int currTime){
 
 void DSDVHost::tick(int currTime){
     Host::tick(currTime);
+    
     if(shouldBroadcast(currTime)){
         if(currTime > nextFullBroadcast) {
             routingTable->entries[0]->sequenceNumber.second += 2;

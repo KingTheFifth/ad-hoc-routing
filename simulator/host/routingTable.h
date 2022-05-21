@@ -23,9 +23,9 @@ struct Row {
     DSDVHost* destination;
     DSDVHost* nextHop; // Next host to traverse on route to destination.
     double cost; // Cost in geographical (link) distance traversed by a route
-    pair<DSDVHost*, unsigned> sequenceNumber; //Sequence number to solve loops and count-to-infinity problem
-    bool hasChanged = true; //Whether or not route has changed recently
-    bool brokenRouteDetected = false; //Whether a broken route has been detected
+    pair<DSDVHost*, unsigned> sequenceNumber; // Sequence number to solve loops and count-to-infinity problem
+    bool hasChanged = true; // Whether or not route has changed recently
+    bool brokenRouteDetected = false; // Whether a broken route has been detected
 };
 
 class RoutingTable {
