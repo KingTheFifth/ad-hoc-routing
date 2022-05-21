@@ -21,11 +21,11 @@ struct Row {
     }
     
     DSDVHost* destination;
-    DSDVHost* nextHop; // For DSDV the route is just a single node (next-hop)
+    DSDVHost* nextHop; // Next host to traverse on route to destination.
     double cost; // Cost in geographical (link) distance traversed by a route
-    pair<DSDVHost*, unsigned> sequenceNumber;
-    bool hasChanged = true;
-    bool brokenRouteDetected = false;
+    pair<DSDVHost*, unsigned> sequenceNumber; //Sequence number to solve loops and count-to-infinity problem
+    bool hasChanged = true; //Whether or not route has changed recently
+    bool brokenRouteDetected = false; //Whether a broken route has been detected
 };
 
 class RoutingTable {
@@ -49,7 +49,7 @@ class RoutingTable {
         void remove(DSDVHost* destination);
 
         /**
-         * Updates local routing table from other table
+         * Updates local routing table with information from another table
          */
         void update(RoutingTable* otherTable);
 
@@ -59,7 +59,7 @@ class RoutingTable {
         void updateCost(Row* row, double cost);
 
         /**
-         * Get the cost from this host to 'host' out of the routing table
+         * Get the cost of the route from this host to ither 'host' from routing table
          */
         int getCost(const DSDVHost* host);
 
@@ -69,7 +69,7 @@ class RoutingTable {
         void setRouteBroken(DSDVHost* destination);
 
         /**
-         * Get a RoutingTable with all changes done to the routing table since last call
+         * Get a RoutingTable containing (only) all changes done to the routing table since last call
          */
         RoutingTable* getChanges();
 
@@ -86,7 +86,7 @@ class RoutingTable {
     private:
 
         /**
-         * Get a specific entry of the Host 'host'
+         * Get a specific row entry of the Host 'host'
          */
         Row* getEntry(const DSDVHost* host);
 };

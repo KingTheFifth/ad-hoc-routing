@@ -18,13 +18,13 @@ class DSDVHost : public Host {
         RoutingTable* routingTable;
 
         /**
-         * 
+         * Broadcasts a routing table to all neighbours. Can be a partial table for incremental updates.
          */
         void broadcastTable(RoutingTable* table);
 
     protected:
         /**
-         * 
+         * Processes incoming packets according to DSDV routing protocol.
          */
         void processPacket(Packet* packet);
 
@@ -34,37 +34,32 @@ class DSDVHost : public Host {
         bool awaitingBroadcast = true;
 
         /**
-         * 
+         * Broadcasts all recently changed routing information to neighbours in an incremental update.
          */
         void broadcastChanges();
 
         /**
-         * 
+         * Checks whether hosts should broadcast or not.
          */
         bool shouldBroadcast(int currTime);
 
         /**
-         * 
+         * Tick the simulation forward once, forwarding packets if appropriate.
          */
         void tick(int currTime);
 
         /**
-         * 
-         */
-        Link* DSDV(DSDVPacket* packet);
-
-        /**
-         * 
+         * Drops a packet and deletes it.
          */
         void dropReceivedPacket(Packet* packet);
 
         /**
-         *
+         * Counts dropped packets for statistics handler.
          */
         void countPacketDrop(Packet* packet);
 
         /**
-         *
+         * Deletes a route from its routing table.
          */
         void deleteRoutes(Host* destination);
 

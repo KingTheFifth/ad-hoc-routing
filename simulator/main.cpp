@@ -32,8 +32,8 @@ void handleDisconnectEvent(Event* event, unordered_map<unsigned, Host*>* hosts);
 int main(int argc, char *argv[])
 {
     // Open input file
-    string eventsFilename = "ev_large_sparse_C_move.txt"; // THIS IS WHERE YOU CHANGE TOPOLOGY/EVENT SETS AAAAAAAAAAAAAAAAAHHHHHHHH
-    Protocol protocol = Protocol::DSR; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
+    string eventsFilename = "ev_small_dense_A_move.txt"; // THIS IS WHERE YOU CHANGE TOPOLOGY/EVENT SETS AAAAAAAAAAAAAAAAAHHHHHHHH
+    Protocol protocol = Protocol::DSDV; // THIS IS WHERE YOU CHANGE PROTOCOL AAAAAAAAAAAAAAAAAAAAHHHHHHH
     ifstream input;
     input.open(eventsFilename);
 

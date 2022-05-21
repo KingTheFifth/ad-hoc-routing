@@ -2,9 +2,6 @@
 #include "DSDVHost.h"
 #include <iostream>
 
-//TODO: Implement sequence numbers. Look up how sequence numbers work first.
-//Specifically who discovers and broadcasts a broken link and with what sequence number.
-
 DSDVHost* RoutingTable::getNextHop(const DSDVHost *destination){
     struct Row* tableEntry = getEntry(destination);
     if (tableEntry == nullptr) { return nullptr; }
@@ -50,13 +47,13 @@ void RoutingTable::update(RoutingTable* otherTable){
             for(vector<Row*>::iterator ourEntry = entries.begin(); ourEntry != entries.end(); ourEntry++){
                 if((*otherEntry)->destination == (*ourEntry)->destination){ //found a matching destination
                     entryFound = true;
-                    if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour needs updating regardless
+                    if ((*ourEntry)->nextHop == neighbourHost && neighbourChanged){ //If neighbour has changed, this route through neighbour always needs updating
                         updateCost(*ourEntry, (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)); //update cost of route this->neighbour->location
                         break; //Only matching entry found. proceed to next.
                     }
                     if((*otherEntry)->sequenceNumber.second > (*ourEntry)->sequenceNumber.second){ //Check if sequence number is newer (higher) than locally stored route
                         if ((*ourEntry)->cost == std::numeric_limits<int>::infinity() && (*otherEntry)->cost != std::numeric_limits<int>::infinity()){
-                            brokenLinks = true;
+                            brokenLinks = true; //brokenLinks = true causes DSDV to quickly broadcast. In this case, an intact route has been found and brokenLinks is set to expedite broadcast. Ugly solution, but functional.
                         }
                         ourEntry = entries.erase(ourEntry) - 1;
                         Row* newRow = new Row((*otherEntry)); //Copy their row
@@ -71,9 +68,8 @@ void RoutingTable::update(RoutingTable* otherTable){
                         entries.push_back(newRow);
                         break;
                     }
-                    else if ((*otherEntry)->sequenceNumber.second == (*ourEntry)->sequenceNumber.second){ //Check if sequence number is same
+                    else if ((*otherEntry)->sequenceNumber.second == (*ourEntry)->sequenceNumber.second){ //Check if sequence number is same. If so, compare costs.
                         if ((*ourEntry)->cost >= (*otherEntry)->cost + thisHost->distanceTo(neighbourHost)){ //Check if this route is cheaper than our locally stored
-                            //cout << "other route is cheaper" << endl;
                             ourEntry = entries.erase(ourEntry) - 1;
                             Row* newRow = new Row((*otherEntry)); //Copy their row
                             newRow->nextHop = neighbourHost; //Update nextHop to neighbour
@@ -95,7 +91,7 @@ void RoutingTable::update(RoutingTable* otherTable){
 void RoutingTable::setRouteBroken(DSDVHost* destination){
     for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
         if((*entry)->nextHop == destination){
-            (*entry)->cost = std::numeric_limits<int>::infinity();
+            (*entry)->cost = std::numeric_limits<int>::infinity(); //infinity used to represent broken link
             (*entry)->sequenceNumber.second += 1;
             (*entry)->hasChanged = true;
             brokenLinks = true;
@@ -124,7 +120,7 @@ RoutingTable* RoutingTable::getChanges(){
         Row* newEntry = new Row(entries[0]);
         tableChanges->entries.push_back(newEntry);
     }
-    for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){
+    for (vector<Row*>::iterator entry = entries.begin(); entry != entries.end(); entry++){ //Add all changed routes to tableChanges.
         if((*entry)->hasChanged){
             Row* newEntry = new Row(*entry);
             tableChanges->entries.push_back(newEntry);
@@ -132,7 +128,6 @@ RoutingTable* RoutingTable::getChanges(){
         }
     }
     return tableChanges;
-    //TODO: create new table from all changed entries.
 }
 
 int RoutingTable::getNumberOfChanges(){
