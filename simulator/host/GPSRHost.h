@@ -14,7 +14,7 @@ struct GPSRHost : public Host {
     protected:
 
         /**
-         * Specific processPacket function for GPSR
+         * Specific processPacket function for GPSR, process 'packet' according to the GPSR routing algorithm
          */
         void processPacket(Packet* packet) override;
 

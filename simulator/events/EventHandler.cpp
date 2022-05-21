@@ -2,22 +2,18 @@
 
 void EventHandler::loadEvents(string filename) {
     ifstream input;
-    string line;
     input.open(filename);
-    //getline(input, line); // ignore the first line as those topology attributes are not handled by the Event handler
+
     int garbage;
-    input >> garbage >> garbage >> garbage;
+    input >> garbage >> garbage >> garbage; // Ignore the first line, as those topology attributes are not handled by the Event handler
 
     int eventType;
-    while (input >> eventType) {
-        cout << line << endl;
-        // stringstream lineStream(line);
-        // lineStream >> eventType;
+    while (input >> eventType) { // As long as we still have events
         Event* event = new Event();
         event->eventType = (Event::EventType) eventType;
         event->duration = EVENT_DURATION_DEFAULT;
 
-        switch (eventType) {
+        switch (eventType) { // Check event type
             case Event::SEND:
                 input >> event->senderId;
                 input >> event->receiverId;
@@ -37,17 +33,16 @@ void EventHandler::loadEvents(string filename) {
                 input >> event->y;
                 break;
         }
-        // cout << "Event: " << event->
-        events.push(event);
+        events.push(event); // Add the list to the waiting queue of events
     }
 }
 
 Event* EventHandler::nextEvent() {
-    if (!events.empty()) {
+    if (!events.empty()) { // If there are events left to be processed
         Event* event = events.front();
         events.pop();
 
-        return event;
+        return event; // Return the next one in the queue
     }
     else return nullptr;
 }

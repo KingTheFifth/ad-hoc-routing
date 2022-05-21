@@ -6,16 +6,16 @@ struct Event {
     EventType eventType;
     int duration;
 
-    // specific to SEND event
-    unsigned senderId;
-    unsigned receiverId;
-    int bytes;
-
     double x;
     double y;
 
     unsigned hostId;
 
+    // Specific to SEND event
+    unsigned senderId;
+    unsigned receiverId;
+    int bytes;
+    
 };
 
 #endif

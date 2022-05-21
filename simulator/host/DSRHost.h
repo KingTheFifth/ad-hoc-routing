@@ -14,19 +14,19 @@ struct DSRHost : public Host {
         ~DSRHost();
 
         /**
-         *
+         * Disconnect this host from the network, removing all packets it had in its buffers
          */
         void die();
 
     protected:
 
         /**
-         * 
+         * Specific processPacket function for DSR, process 'packet' according to the DSR routing algorithm
          */
         void processPacket(Packet* packet);
 
         /**
-         * 
+         * Drop 'packet'. Count the packet as a dropped data packet if it was one
          */
         void dropReceivedPacket(Packet* packet);
 
@@ -37,7 +37,7 @@ struct DSRHost : public Host {
         vector<pair<const Host*, unsigned>> recentlySeenRequests;
 
         /**
-         *
+         * Tick the simulation forward once, forwarding packets if appropriate
          */
         void tick(int currTime);
 
@@ -47,37 +47,41 @@ struct DSRHost : public Host {
         void DSR(DSRPacket* packet);
 
         /**
-         * 
+         * Get the next link to follow if we want to route to 'target'. 
+         * Can return nullptr if the link has been broken or if there was no cached route to 'target'
          */
         Link* getCachedNextHop(const Host* target);
 
         /**
-         * 
+         * Get the cached route in this host to 'target'. If no route is found, return nullptr
          */
         DSRRoute* getCachedRoute(const Host* target);
 
         /**
-         * 
+         * Determine wether a packet should be dropped or not. 
+         * Used when checking if a specific RREQ packet has already been at this host
          */
         bool shouldBeDropped(const DSRPacket* packet);
 
         /**
-         *
+         * Count 'packet' as a data packet dropped if it is one
          */
         void countPacketDrop(Packet* packet);
 
         /**
-         *
+         * Not used in DSR
          */
         void deleteRoutes(Host* destination);
 
         /**
-         *
+         * Used if a packet has failed to route because of link breakage. 
+         * Send out a RERR packet letting the sending host know of the broken link
          */
         void sendRERR(DSRPacket* packet);
 
         /**
-         *
+         * If this host has received a RERR packet, trim all routes from this 
+         * host to where the packet found the broken link and onword
          */
         void handleRERR(DSRPacket* packet);
 

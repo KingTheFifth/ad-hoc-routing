@@ -14,14 +14,14 @@ struct DSRRoute {
     ~DSRRoute() {};
 
     /**
-     *
+     * Copy constructor of DSRRoute, make this a copy of 'other'. The 'reverse' boolean changes direction of the route
      */
     DSRRoute(const DSRRoute& other, bool reverse) {
         copyOther(other, reverse);
     }
 
     /**
-     *
+     * Make this a copy of 'other'. The 'reverse' boolean changes direction of the route
      */
     void copyOther(const DSRRoute& other, bool reverse) {
         for (const Host* h : other.route) {
@@ -35,21 +35,21 @@ struct DSRRoute {
     }
 
     /**
-     *
+     * Returns true if the route is empty
      */
     bool isEmpty() {
         return route.empty();
     }
 
     /**
-     *
+     * Empty the route
      */
     void empty() {
         route.clear();
     }
 
     /**
-     *
+     * Return the size of the route
      */
     unsigned size() {
         return route.size();
@@ -101,7 +101,7 @@ struct DSRRoute {
     }
 
     /**
-     *
+     * Remove hosts up until 'first' at the front of the route
      */
     void trimFront(const Host* first) {
         vector<const Host*>::iterator it = route.begin();
@@ -111,7 +111,7 @@ struct DSRRoute {
     }
 
     /**
-     *
+     * Remove hosts up until 'last' at the back of the route
      */
     void trimBack(const Host* last) {
         vector<const Host*>::iterator it = route.begin();
