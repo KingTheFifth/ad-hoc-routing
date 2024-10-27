@@ -31,6 +31,13 @@ Event types:
   - Input for this would look like: 2 P
 - 3: host P move to (x, y) 
   - Input for this would look like: 3 P x y
+ 
+### Sample video
+https://github.com/user-attachments/assets/27e3239a-289b-4d98-a867-18c7de6273ce
+
+## Project results
+Explanations of the project, the simulation, the protocols and the results from the gathered metrics from the simulations can be read in the report `ad_hoc_project_report.pdf`.
+
 ## Building and running
 ### Dependencies
 Qt e.g. Qt5, cmake, gcc or other c++ compiler
